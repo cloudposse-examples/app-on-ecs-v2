@@ -1,0 +1,32 @@
+name: Rollback
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Rollback to Version'
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  rollback:
+    if: ${{ inputs.version }}
+    name: Rollback
+    uses: ./.github/workflows/ecspresso-rollback.yml
+    with:
+      organization: "${{ github.event.repository.owner.login }}"
+      repository: "${{ github.event.repository.name }}"
+      version: ${{ inputs.version }}
+      environments: '["staging", "production"]'
+      enable-migration: false
+      support-rollback: false
+      app: "example-${{ github.event.repository.name }}"
+    secrets:
+      github-private-actions-pat: "${{ secrets.PRIVATE_CONFIG_READ_ACCESS }}"
+      registry: "${{ secrets.ECR_REGISTRY }}"
+      secret-outputs-passphrase: "${{ secrets.GHA_SECRET_OUTPUT_PASSPHRASE }}"
+      ecr-region: "${{ secrets.ECR_REGION }}"
+      ecr-iam-role: "${{ secrets.ECR_IAM_ROLE }}"

@@ -1,0 +1,63 @@
+name: |-
+  Controller - Reingtegrate hotfix branch
+  
+  Create PR into `target_branch` to reintegrate hotfix from current branch 
+
+  ### Usage 
+
+  ```yaml
+    name: Release
+    on:
+      release:
+        types: [published]
+
+    jobs:
+      do:
+        uses: ./.github/workflows/workflow-controller-hotfix-reintegrate.yml
+        with:
+          ref: $\{\{ github.ref \}\}
+          target_branch: main
+        secrets:
+          github-private-actions-pat: $\{\{ secrets.github-private-actions-pat \}\}
+  ```
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: "The fully-formed ref of the branch or tag that triggered the workflow run"
+        required: true
+        type: string
+      target_branch:
+        description: "Target branch to reintegrate hotfix"
+        required: false
+        type: string
+        default: main
+    secrets:
+      github-private-actions-pat:
+        description: "Github PAT allow to create a pull request"
+        required: true
+
+permissions:
+  contents: write
+  id-token: write
+  pull-requests: read
+
+jobs:
+  changes:
+    runs-on: ["ubuntu-latest"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.ref }}
+
+      - name: Create reingtegration PR
+        uses: devops-infra/action-pull-request@v0.5.5
+        with:
+          github_token: ${{ secrets.github-private-actions-pat }}
+          target_branch: ${{ inputs.target_branch }}
+          title: Reintegrate ${{ inputs.ref }} hotfix into main branch
+          template: .github/REINTEGRATE_PULL_REQUEST_TEMPLATE.md
+          get_diff: true

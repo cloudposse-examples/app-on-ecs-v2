@@ -1,0 +1,108 @@
+name: |-
+  Rollback workflow 
+
+  Rollback to a specific version for any number of environments
+  ```
+
+on:
+  workflow_call:
+    inputs:
+      organization:
+        description: "Repository owner organization (ex. acme for repo acme/example)"
+        required: false
+        default: ${{ github.event.repository.owner.login }}
+        type: string
+      repository:
+        description: "Repository name (ex. example for repo acme/example)"
+        required: false
+        default: ${{ github.event.repository.name }}
+        type: string
+      version:
+        description: "Release version tag"
+        required: true
+        type: string
+      environments:
+        description: "Environments to rollback the versions of."
+        required: false
+        default: '[staging, production]'
+        type: string
+      enable-migration:
+        description: "Run DB migration"
+        type: boolean
+        required: false
+        default: false
+      support-rollback:
+        description: "Perform rollback on failure"
+        type: boolean
+        required: false
+        default: false
+      app:
+        description: "Application name. Used with monorepo pattern when there are several applications in the repo"
+        required: false
+        type: string
+    secrets:
+      secret-outputs-passphrase:
+        description: "Passphrase to encrypt/decrypt secret outputs with gpg. For more information [read](https://github.com/cloudposse/github-action-secret-outputs)"
+        required: true
+      registry:
+        description: "ECR ARN"
+        required: true
+      github-private-actions-pat:
+        description: "Github PAT allow to pull private repos"
+        required: true
+      ecr-region:
+        description: "ECR AWS region"
+        required: true
+      ecr-iam-role:
+        description: "IAM Role ARN provide ECR write/read access"
+        required: true
+
+jobs:
+  setup:
+    runs-on: ["ubuntu-latest"]
+    steps:
+      - name: Sanitize Organization
+        id: lowercase_org
+        uses: cloudposse/github-action-string-transformer@0.3.0
+        with:
+          operation: 'lowercase'
+          input-string: ${{ inputs.organization }}
+
+      - name: Sanitize Repository
+        id: lowercase_repo
+        uses: cloudposse/github-action-string-transformer@0.3.0
+        with:
+          operation: 'lowercase'
+          input-string: ${{ inputs.repository }}
+
+      - name: Encode Image
+        uses: cloudposse/github-action-secret-outputs@0.1.1
+        id: image
+        with:
+          secret: ${{ secrets.secret-outputs-passphrase }}
+          op: encode
+          in: ${{ secrets.registry }}/${{ steps.lowercase_org.outputs.output-string }}/${{ steps.lowercase_repo.outputs.output-string }}
+
+    outputs:
+      image: ${{ steps.image.outputs.out }}
+      lowercase_org: ${{ steps.lowercase_org.outputs.output-string }}
+      lowercase_repo: ${{ steps.lowercase_repo.outputs.output-string }}
+
+  redeploy:
+    strategy:
+      matrix:
+        environment: ${{ fromJson(inputs.environments) }}
+    name: ${{ matrix.environment }}
+    uses: ./.github/workflows/workflow-cd-ecspresso.yml
+    needs: setup
+    with:
+      image: ${{ needs.setup.outputs.image }}
+      tag: ${{ inputs.version }}
+      repository: ${{ needs.setup.outputs.lowercase_repo }}
+      environment: ${{ matrix.environment }}
+      enable-migration: ${{ inputs.enable-migration }}
+      support-rollback: ${{ inputs.support-rollback }}
+      app: ${{ inputs.app }}
+    secrets:
+      secret-outputs-passphrase: ${{ secrets.secret-outputs-passphrase }}
+      github-private-actions-pat: ${{ secrets.github-private-actions-pat }}

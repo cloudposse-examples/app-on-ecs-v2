@@ -1,0 +1,15 @@
+name: Create Release Branch
+on:
+  release:
+    types: [published]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  hotfix:
+    name: release / branch
+    uses: ./.github/workflows/ecspresso-hotfix-mixin.yml
+    with:
+      version: ${{ github.event.release.tag_name }}

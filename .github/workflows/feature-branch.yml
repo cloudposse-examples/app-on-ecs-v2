@@ -1,0 +1,28 @@
+name: Feature Branch
+on:
+  pull_request:
+    branches: ["main"]
+    types: [opened, synchronize, reopened, closed, labeled, unlabeled]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  do:
+    uses: ./.github/workflows/ecspresso-feature-branch.yml
+    with:
+      organization: "${{ github.event.repository.owner.login }}"
+      repository: "${{ github.event.repository.name }}"
+      open: ${{ github.event.pull_request.state == 'open' }}
+      labels: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+      ref: ${{ github.event.pull_request.head.ref  }}
+      app: "example-${{ github.event.repository.name }}" # example-app-on-ecs
+      use-partial-taskdefinition: true
+
+    secrets:
+      github-private-actions-pat: "${{ secrets.PRIVATE_CONFIG_READ_ACCESS }}"
+      registry: "${{ secrets.ECR_REGISTRY }}"
+      secret-outputs-passphrase: "${{ secrets.GHA_SECRET_OUTPUT_PASSPHRASE }}"
+      ecr-region: "${{ secrets.ECR_REGION }}"
+      ecr-iam-role: "${{ secrets.ECR_IAM_ROLE }}"
