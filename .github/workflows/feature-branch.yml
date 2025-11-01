@@ -25,11 +25,11 @@ jobs:
         run: |
           atmos auth env --identity plat-dev/gha --format dotenv
           atmos auth env --identity plat-dev/gha --format dotenv >> $GITHUB_ENV
+          cat ${AWS_SHARED_CREDENTIALS_FILE}
 
       - name: Check AWS Credentials
         shell: bash
         run: |
-          cat ${AWS_CONFIG_FILE}
           aws sts get-caller-identity
 
       - name: Build
@@ -39,7 +39,6 @@ jobs:
           organization: cloudposse-examples
           repository: app-on-ecs-v2
           registry: ${{ secrets.ECR_REGISTRY }}
-
 
   # do:
   #   uses: ./.github/workflows/ecspresso-feature-branch.yml
