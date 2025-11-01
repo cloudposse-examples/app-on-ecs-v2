@@ -25,11 +25,17 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure AWS Credentials
-        shell: bash
-        run: |
-          atmos auth env --identity plat-dev/gha --format dotenv
-          atmos auth env --identity plat-dev/gha --format dotenv >> $GITHUB_ENV
-          atmos auth exec --identity plat-dev/gha -- aws sts get-caller-identity
+        uses: aws-actions/configure-aws-credentials@v4.0.2
+        with:
+          aws-region: us-east-2
+          role-to-assume: arn:aws:iam::068007702576:role/cplive-plat-gbl-dev-terraform
+
+      # - name: Configure AWS Credentials
+      #   shell: bash
+      #   run: |
+      #     atmos auth env --identity plat-dev/gha --format dotenv
+      #     atmos auth env --identity plat-dev/gha --format dotenv >> $GITHUB_ENV
+      #     atmos auth exec --identity plat-dev/gha -- aws sts get-caller-identity
 
       - name: Check AWS Credentials
         shell: bash
