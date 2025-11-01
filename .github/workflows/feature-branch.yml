@@ -20,7 +20,7 @@ jobs:
 
       - name: Configure AWS Credentials
         run: |
-          atmos auth env --identity plat-dev/gha --format dotenv
+          atmos auth env --identity plat-dev/gha --format dotenv --redirect-stderr /dev/null
           
       - name: Build
         id: build
