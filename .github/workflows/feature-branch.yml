@@ -23,6 +23,7 @@ jobs:
       - name: Configure AWS Credentials
         shell: bash
         run: |
+          atmos auth env --identity plat-dev/gha --format dotenv
           atmos auth env --identity plat-dev/gha --format dotenv >> $GITHUB_ENV
 
       - name: Check AWS Credentials
@@ -30,7 +31,6 @@ jobs:
         run: |
           cat ${AWS_CONFIG_FILE}
           aws sts get-caller-identity
-            
 
       - name: Build
         id: build
