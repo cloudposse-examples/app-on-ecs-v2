@@ -25,7 +25,7 @@ jobs:
         run: |
           atmos auth env --identity plat-dev/gha --format dotenv
           atmos auth env --identity plat-dev/gha --format dotenv >> $GITHUB_ENV
-          atmos auth exec --identity plat-dev/gha --- cat /home/runner/.config/atmos/aws/github-oidc/config
+          atmos auth exec --identity plat-dev/gha -- cat /home/runner/.config/atmos/aws/github-oidc/config
 
       - name: Check AWS Credentials
         shell: bash
