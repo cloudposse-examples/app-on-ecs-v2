@@ -24,11 +24,11 @@ jobs:
         shell: bash
         run: |
           atmos auth env --identity plat-dev/gha --format dotenv >> $GITHUB_ENV
-          aws sts get-caller-identity
 
       - name: Check AWS Credentials
         shell: bash
         run: |
+          cat ${AWS_CONFIG_FILE}
           aws sts get-caller-identity
             
 
