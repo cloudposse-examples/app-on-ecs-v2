@@ -21,7 +21,6 @@ jobs:
       - name: Configure AWS Credentials
         run: |
           atmos auth env --identity plat-dev/gha --format dotenv
-          atmos auth env --identity plat-dev/gha --format dotenv >> $GITHUB_ENV
           
       - name: Build
         id: build
