@@ -96,7 +96,7 @@ auth:
       kind: github/oidc
       region: us-east-2 # Required
       spec:
-        audience: sts.us-east-2.amazonaws.com
+        audience: sts.amazonaws.com
 
   identities:      
     core-identity/managers-team-access:
