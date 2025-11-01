@@ -1,0 +1,19 @@
+components:
+  terraform:
+    app:
+      metadata:
+        component: ecs-task
+      vars:
+        name: app
+        containers:
+          app:
+            image: nginx:1.29.3
+            memory: 256
+            port_mappings:
+              - containerPort: 80
+            healthcheck:
+              command: ["CMD-SHELL", "curl -f http://localhost || exit 1"]
+              interval: 30
+              retries: 3
+              startPeriod: 0
+              timeout: 5

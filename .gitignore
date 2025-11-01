@@ -3,3 +3,4 @@ release/*
 build-harness/
 .idea
 *.iml
+.terraform
