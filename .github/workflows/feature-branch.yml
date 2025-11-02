@@ -20,6 +20,8 @@ jobs:
         uses: cloudposse/github-action-setup-atmos@v2
         with:
           install-wrapper: false
+          atmos-version: v1.197.0-test.33
+
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,6 +35,7 @@ jobs:
       - name: Configure AWS Credentials
         shell: bash
         run: |
+          atmos version
           atmos auth exec --identity plat-dev/gha -- aws sts get-caller-identity
 
       - name: Check AWS Credentials

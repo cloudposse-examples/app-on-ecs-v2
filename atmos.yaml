@@ -94,7 +94,7 @@ auth:
     
     github-oidc:
       kind: github/oidc
-      region: us-east-2 # Required
+      region: us-east-2
       spec:
         audience: sts.amazonaws.com
 
