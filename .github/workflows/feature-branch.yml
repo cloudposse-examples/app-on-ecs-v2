@@ -20,7 +20,7 @@ jobs:
         uses: cloudposse/github-action-setup-atmos@v2
         with:
           install-wrapper: false
-          atmos-version: v1.197.0-test.33
+          atmos-version: v1.197.0-test.34
 
 
       - name: Checkout
