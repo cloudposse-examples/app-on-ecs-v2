@@ -42,8 +42,8 @@ jobs:
           organization: cloudposse-examples
           repository: app-on-ecs-v2
           registry: ${{ secrets.ECR_REGISTRY }}
-          password: ${{ steps.ecr.outputs.password }}
-          login: AWS
+          password: "${{ steps.ecr.outputs.password }}"
+          login: "AWS"
 
   # do:
   #   uses: ./.github/workflows/ecspresso-feature-branch.yml
