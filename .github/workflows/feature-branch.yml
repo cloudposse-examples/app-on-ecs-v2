@@ -26,30 +26,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # - name: Configure AWS Credentials
-      #   uses: aws-actions/configure-aws-credentials@v4.0.2
-      #   with:
-      #     aws-region: us-east-2
-      #     role-to-assume: arn:aws:iam::068007702576:role/cplive-plat-gbl-dev-terraform
-
-      - name: Configure AWS Credentials
+      - name: ECR password
         shell: bash
+        id: ecr
         run: |
           atmos version
-          atmos auth exec --identity plat-dev/gha -- aws sts get-caller-identity
-
-      - name: Check AWS Credentials
-        shell: bash
-        run: |
-          aws sts get-caller-identity
+          echo "password=$(atmos auth exec --identity plat-dev/gha -- aws ecr get-login-password --region us-east-2)" >> $GITHUB_OUTPUT
 
       - name: Build
         id: build
-        uses: cloudposse/github-action-docker-build-push@1.15.0
+        uses: cloudposse/github-action-docker-build-push@v2
         with:
           organization: cloudposse-examples
           repository: app-on-ecs-v2
           registry: ${{ secrets.ECR_REGISTRY }}
+          password: ${{ steps.ecr.outputs.password }}
+          login: AWS
 
   # do:
   #   uses: ./.github/workflows/ecspresso-feature-branch.yml
