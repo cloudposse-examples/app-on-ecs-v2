@@ -32,8 +32,8 @@ jobs:
         run: |
           atmos version
           PASSWORD=$(atmos auth exec --identity plat-dev/gha -- aws ecr get-login-password --region us-east-2)
-          echo "password=${PASSWORD//\n/}" >> $GITHUB_OUTPUT
-          # echo "::add-mask::${PASSWORD}"
+          echo "password=${PASSWORD}" >> $GITHUB_OUTPUT
+          echo "::add-mask::${PASSWORD}"
 
       - name: Build
         id: build
