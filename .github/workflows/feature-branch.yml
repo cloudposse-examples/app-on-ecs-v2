@@ -44,8 +44,6 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: 068007702576.dkr.ecr.us-east-2.amazonaws.com
-          username: ${{ env.AWS_ACCESS_KEY_ID }}
-          password: ${{ env.AWS_SECRET_ACCESS_KEY }}
 
       - name: Build
         id: build
