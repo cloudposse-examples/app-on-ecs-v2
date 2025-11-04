@@ -43,7 +43,7 @@ jobs:
       - name: Login to Public ECR
         uses: docker/login-action@v3
         with:
-          registry: 068007702576.dkr.ecr.us-east-2.amazonaws.com
+          registry: ${{ secrets.ECR_REGISTRY }}
 
       - name: Build
         id: build
@@ -52,8 +52,6 @@ jobs:
           organization: cloudposse-examples
           repository: app-on-ecs-v2
           registry: ${{ secrets.ECR_REGISTRY }}
-          password: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          login: ${{ env.AWS_ACCESS_KEY_ID }}
 
   # do:
   #   uses: ./.github/workflows/ecspresso-feature-branch.yml
