@@ -31,9 +31,7 @@ jobs:
         id: ecr
         run: |
           atmos version
-          PASSWORD=$(atmos auth exec --identity plat-dev/gha -- aws ecr get-login-password --region us-east-2)
-          echo "password=${PASSWORD}" >> $GITHUB_OUTPUT
-          echo "::add-mask::${PASSWORD}"
+          atmos auth exec --identity plat-dev/gha -- aws configure export-credentials --format env-no-export >> $GITHUB_ENV
 
       - name: Build
         id: build
@@ -42,8 +40,8 @@ jobs:
           organization: cloudposse-examples
           repository: app-on-ecs-v2
           registry: ${{ secrets.ECR_REGISTRY }}
-          password: "${{ steps.ecr.outputs.password }}"
-          login: "AWS"
+          password: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          login: ${{ env.AWS_ACCESS_KEY_ID }}
 
   # do:
   #   uses: ./.github/workflows/ecspresso-feature-branch.yml
