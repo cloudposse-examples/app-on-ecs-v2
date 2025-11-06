@@ -7,7 +7,7 @@ components:
         name: app
         containers:
           app:
-            image: nginx:1.29.3
+            image: 068007702576.dkr.ecr.us-east-2.amazonaws.com/cloudposse-examples/app-on-ecs-v2:sha-785867b
             memory: 256
             port_mappings:
               - containerPort: 80
