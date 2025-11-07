@@ -7,7 +7,7 @@ components:
         name: app
         containers:
           app:
-            image: 068007702576.dkr.ecr.us-east-2.amazonaws.com/cloudposse-examples/app-on-ecs-v2:sha-785867b
+            image: !env APP_IMAGE 068007702576.dkr.ecr.us-east-2.amazonaws.com/cloudposse-examples/app-on-ecs-v2:sha-2ee4206
             memory: 256
             port_mappings:
               - containerPort: 8080

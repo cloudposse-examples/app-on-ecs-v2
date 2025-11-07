@@ -66,8 +66,6 @@ resource "aws_ecs_task_definition" "default" {
   requires_compatibilities = ["FARGATE", "EC2"]
   network_mode             = var.task.network_mode
 
-
-
   cpu                      = 256
   memory                   = 512
 
