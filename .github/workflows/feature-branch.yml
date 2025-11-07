@@ -75,6 +75,6 @@ jobs:
       - name: Deploy ECS Service
         shell: bash
         env:
-          APP_IMAGE: ${{ needs.build.outputs.image }}
+          APP_IMAGE: "${{ needs.build.outputs.image }}:${{ needs.build.outputs.tag }}"
         run: |
           atmos terraform deploy app -s dev --identity plat-dev/gha
