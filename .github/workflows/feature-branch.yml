@@ -79,6 +79,11 @@ jobs:
           echo "::mask::${{ env.AWS_ACCESS_KEY_ID }}"
           echo "::mask::${{ env.AWS_SESSION_TOKEN }}"
 
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_wrapper: false
+          tofu_version_file: .opentofu-version          
+
       - name: ECR password
         shell: bash
         env:
