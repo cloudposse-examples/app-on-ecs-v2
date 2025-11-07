@@ -67,24 +67,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: ECR password
-        shell: bash
-        run: |
-          atmos auth exec --identity plat-dev/gha -- aws configure export-credentials --format env-no-export >> $GITHUB_ENV
-
-      - name: Mask ECR credentials
-        shell: bash
-        run: |
-          echo "::mask::${{ env.AWS_SECRET_ACCESS_KEY }}"
-          echo "::mask::${{ env.AWS_ACCESS_KEY_ID }}"
-          echo "::mask::${{ env.AWS_SESSION_TOKEN }}"
-
       - uses: opentofu/setup-opentofu@v1
         with:
           tofu_wrapper: false
           tofu_version_file: .opentofu-version          
 
-      - name: ECR password
+      - name: Deploy ECS Service
         shell: bash
         env:
           APP_IMAGE: ${{ needs.build.outputs.image }}
