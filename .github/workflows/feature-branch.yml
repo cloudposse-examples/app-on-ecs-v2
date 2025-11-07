@@ -40,7 +40,7 @@ jobs:
       - name: Login to Public ECR
         uses: docker/login-action@v3
         with:
-          registry: ${{ secrets.ECR_REGISTRY }}
+          registry: ${{ vars.ECR_REGISTRY }}
 
       - name: Build
         id: build
@@ -48,7 +48,7 @@ jobs:
         with:
           organization: cloudposse-examples
           repository: app-on-ecs-v2
-          registry: ${{ secrets.ECR_REGISTRY }}
+          registry: ${{ vars.ECR_REGISTRY }}
 
     outputs:
       image: ${{ steps.build.outputs.image }}
