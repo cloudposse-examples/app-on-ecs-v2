@@ -30,7 +30,7 @@ components:
     command: "tofu" 
     # Can also be set using `ATMOS_COMPONENTS_TERRAFORM_BASE_PATH` ENV var, or `--terraform-dir` command-line argument
     # Supports both absolute and relative paths
-    base_path: "infra/components"
+    base_path: "terraform/components"
     # Can also be set using `ATMOS_COMPONENTS_TERRAFORM_APPLY_AUTO_APPROVE` ENV var
     apply_auto_approve: false
     # Can also be set using `ATMOS_COMPONENTS_TERRAFORM_DEPLOY_RUN_INIT` ENV var, or `--deploy-run-init` command-line argument
@@ -43,7 +43,7 @@ components:
 stacks:
   # Can also be set using `ATMOS_STACKS_BASE_PATH` ENV var, or `--config-dir` and `--stacks-dir` command-line arguments
   # Supports both absolute and relative paths
-  base_path: "infra/stacks"
+  base_path: "terraform/stacks"
   # Can also be set using `ATMOS_STACKS_INCLUDED_PATHS` ENV var (comma-separated values string)
   # Since we are distinguishing stacks based on namespace, and namespace is not part
   # of the stack name, we have to set `included_paths` via the ENV var in the Dockerfile

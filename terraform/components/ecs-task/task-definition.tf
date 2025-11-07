@@ -60,8 +60,13 @@ resource "aws_ecs_task_definition" "default" {
   family                   = module.this.id
   container_definitions    = local.container_definitions
 
+  # task_role_arn = "arn:aws:iam::068007702576:role/app-on-ecs-v2-task-role"
+  execution_role_arn = aws_iam_role.ecs_exec[0].arn
+
   requires_compatibilities = ["FARGATE", "EC2"]
   network_mode             = var.task.network_mode
+
+
 
   cpu                      = 256
   memory                   = 512

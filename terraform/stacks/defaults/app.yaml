@@ -10,9 +10,9 @@ components:
             image: 068007702576.dkr.ecr.us-east-2.amazonaws.com/cloudposse-examples/app-on-ecs-v2:sha-785867b
             memory: 256
             port_mappings:
-              - containerPort: 80
+              - containerPort: 8080
             healthcheck:
-              command: ["CMD-SHELL", "curl -f http://localhost || exit 1"]
+              command: ["CMD-SHELL", "curl -f http://localhost:8080/healthz || exit 1"]
               interval: 30
               retries: 3
               startPeriod: 0
