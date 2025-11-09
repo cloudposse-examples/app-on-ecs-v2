@@ -1,0 +1,67 @@
+import:
+  - defaults/app.yaml
+
+vars:
+  namespace: cplive
+  tenant: plat
+  stage: dev
+  region: us-east-2
+  environment: ue2
+
+terraform:
+  # Configure context
+  vars:
+    label_order:
+      - namespace
+      - tenant
+      - environment
+      - stage
+      - name
+      - attributes
+    descriptor_formats:
+      account_name:
+        format: "%v-%v"
+        labels:
+          - tenant
+          - stage
+      stack:
+        format: "%v-%v-%v"
+        labels:
+          - tenant
+          - environment
+          - stage
+
+  backend_type: s3
+  backend:
+    s3:
+      bucket: cplive-plat-ue2-dev-tfstate-apps
+      use_lockfile: true
+      encrypt: true
+      key: terraform.tfstate
+      acl: bucket-owner-full-control
+      region: us-east-2
+
+  auth:
+    identities:
+      plat-dev/admin:
+        default: true
+  
+components:
+  terraform:
+    app:
+      vars:
+        ecs_cluster_arn: arn:aws:ecs:us-east-2:068007702576:cluster/cplive-plat-ue2-dev-ecs-platform
+        vpc_id: vpc-0935d163d59e45dd0
+        subnet_ids:
+          - subnet-01f1542b475c2ad0d
+          - subnet-0819e15e92443f46d
+          - subnet-0e59c93dadf26b1b1
+        security_group_ids: []
+        assign_public_ip: true
+        task:
+          desired_count: 1
+        ecs_load_balancers:
+          - container_name: app
+            container_port: 80
+            # elb_name: cplive-plat-ue2-dev-ecs-pl-5bd92
+            target_group_arn: arn:aws:elasticloadbalancing:us-east-2:068007702576:targetgroup/default-platform-public/5357e1d1546c18a5

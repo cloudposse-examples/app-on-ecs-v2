@@ -8,21 +8,73 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
-jobs:
-  do:
-    uses: ./.github/workflows/ecspresso-feature-branch.yml
-    with:
-      organization: "${{ github.event.repository.owner.login }}"
-      repository: "${{ github.event.repository.name }}"
-      open: ${{ github.event.pull_request.state == 'open' }}
-      labels: ${{ toJSON(github.event.pull_request.labels.*.name) }}
-      ref: ${{ github.event.pull_request.head.ref  }}
-      app: "example-${{ github.event.repository.name }}" # example-app-on-ecs
-      use-partial-taskdefinition: true
+permissions:
+  id-token: write
+  contents: read
 
-    secrets:
-      github-private-actions-pat: "${{ secrets.PRIVATE_CONFIG_READ_ACCESS }}"
-      registry: "${{ secrets.ECR_REGISTRY }}"
-      secret-outputs-passphrase: "${{ secrets.GHA_SECRET_OUTPUT_PASSPHRASE }}"
-      ecr-region: "${{ secrets.ECR_REGION }}"
-      ecr-iam-role: "${{ secrets.ECR_IAM_ROLE }}"
+jobs:
+  build:
+    runs-on: ["ubuntu-latest"]
+    steps:
+      - name: Install Atmos
+        uses: cloudposse/github-action-setup-atmos@v2
+        with:
+          install-wrapper: false
+          atmos-version: v1.197.0-test.34
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: ECR password
+        shell: bash
+        run: |
+          atmos auth exec --identity plat-dev/gha -- aws configure export-credentials --format env-no-export >> $GITHUB_ENV
+
+      - name: Mask ECR credentials
+        shell: bash
+        run: |
+          echo "::mask::${{ env.AWS_SECRET_ACCESS_KEY }}"
+          echo "::mask::${{ env.AWS_ACCESS_KEY_ID }}"
+          echo "::mask::${{ env.AWS_SESSION_TOKEN }}"
+
+      - name: Login to Public ECR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ vars.ECR_REGISTRY }}
+
+      - name: Build
+        id: build
+        uses: cloudposse/github-action-docker-build-push@v2
+        with:
+          organization: cloudposse-examples
+          repository: app-on-ecs-v2
+          registry: ${{ vars.ECR_REGISTRY }}
+
+    outputs:
+      image: ${{ steps.build.outputs.image }}
+      tag: ${{ steps.build.outputs.tag }}
+      
+  deploy:
+    needs: [ build ]
+    runs-on: ["ubuntu-latest"]
+    steps:
+      - name: Install Atmos
+        uses: cloudposse/github-action-setup-atmos@v2
+        with:
+          install-wrapper: false
+          atmos-version: v1.197.0-test.34
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_wrapper: false
+          tofu_version_file: .opentofu-version          
+
+      - name: Deploy ECS Service
+        shell: bash
+        env:
+          APP_IMAGE: "${{ needs.build.outputs.image }}:${{ needs.build.outputs.tag }}"
+        run: |
+          atmos terraform deploy app -s dev --identity plat-dev/gha

@@ -1,0 +1,15 @@
+{
+  "terraform": {
+    "backend": {
+      "s3": {
+        "acl": "bucket-owner-full-control",
+        "bucket": "cplive-plat-ue2-dev-tfstate-apps",
+        "encrypt": true,
+        "key": "terraform.tfstate",
+        "region": "us-east-2",
+        "use_lockfile": true,
+        "workspace_key_prefix": "ecs-task"
+      }
+    }
+  }
+}

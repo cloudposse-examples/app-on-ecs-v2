@@ -1,0 +1,144 @@
+# CLI config is loaded from the following locations (from lowest to highest priority):
+# system dir (`/usr/local/etc/atmos` on Linux, `%LOCALAPPDATA%/atmos` on Windows)
+# home dir (~/.atmos)
+# current directory
+# ENV vars
+# Command-line arguments
+#
+# It supports POSIX-style Globs for file names/paths (double-star `**` is supported)
+# https://en.wikipedia.org/wiki/Glob_(programming)
+
+# Base path for components, stacks and workflows configurations.
+# Can also be set using `ATMOS_BASE_PATH` ENV var, or `--base-path` command-line argument.
+# Supports both absolute and relative paths.
+# If not provided or is an empty string, `components.terraform.base_path`, `components.helmfile.base_path`, `stacks.base_path` and `workflows.base_path`
+# are independent settings (supporting both absolute and relative paths).
+# If `base_path` is provided, `components.terraform.base_path`, `components.helmfile.base_path`, `stacks.base_path` and `workflows.base_path`
+# are considered paths relative to `base_path`.
+base_path: "."
+
+aliases:
+  tofu: terraform
+
+# Import shared configuration used by all modules
+import:
+  - https://raw.githubusercontent.com/cloudposse/infra-live/refs/heads/main/auth.yaml?token=GHSAT0AAAAAACC6YEJXAEQH5BDDDM4K67QC2ICOUQA
+
+components:
+  terraform:
+    # Use the `tofu` command when calling "terraform" in Atmos.
+    command: "tofu" 
+    # Can also be set using `ATMOS_COMPONENTS_TERRAFORM_BASE_PATH` ENV var, or `--terraform-dir` command-line argument
+    # Supports both absolute and relative paths
+    base_path: "terraform/components"
+    # Can also be set using `ATMOS_COMPONENTS_TERRAFORM_APPLY_AUTO_APPROVE` ENV var
+    apply_auto_approve: false
+    # Can also be set using `ATMOS_COMPONENTS_TERRAFORM_DEPLOY_RUN_INIT` ENV var, or `--deploy-run-init` command-line argument
+    deploy_run_init: true
+    # Can also be set using `ATMOS_COMPONENTS_TERRAFORM_INIT_RUN_RECONFIGURE` ENV var, or `--init-run-reconfigure` command-line argument
+    init_run_reconfigure: true
+    # Can also be set using `ATMOS_COMPONENTS_TERRAFORM_AUTO_GENERATE_BACKEND_FILE` ENV var, or `--auto-generate-backend-file` command-line argument
+    auto_generate_backend_file: true
+
+stacks:
+  # Can also be set using `ATMOS_STACKS_BASE_PATH` ENV var, or `--config-dir` and `--stacks-dir` command-line arguments
+  # Supports both absolute and relative paths
+  base_path: "terraform/stacks"
+  # Can also be set using `ATMOS_STACKS_INCLUDED_PATHS` ENV var (comma-separated values string)
+  # Since we are distinguishing stacks based on namespace, and namespace is not part
+  # of the stack name, we have to set `included_paths` via the ENV var in the Dockerfile
+  included_paths:
+    - "**/*"
+  # Can also be set using `ATMOS_STACKS_EXCLUDED_PATHS` ENV var (comma-separated values string)
+  excluded_paths:
+    - "defaults/*"
+
+  # Can also be set using `ATMOS_STACKS_NAME_PATTERN` ENV var
+  name_pattern: "{stage}"
+
+
+# `Go` templates in Atmos manifests
+# https://atmos.tools/core-concepts/stacks/templating
+# https://pkg.go.dev/text/template
+templates:
+  settings:
+    enabled: true
+    # https://masterminds.github.io/sprig
+    sprig:
+      enabled: true
+    # https://docs.gomplate.ca
+    gomplate:
+      enabled: true
+
+logs:
+  verbose: false
+  colors: true
+  file: "/dev/stderr"
+  # Supported log levels: Trace, Debug, Info, Warning, Off
+  # Can also be set using `ATMOS_LOGS_LEVEL` ENV var, or `--log-level` command-line argument
+  level: Info
+
+settings:
+  telemetry:
+    enabled: false  
+
+auth:
+  logs:
+    level: Debug
+  
+  providers:
+    cplive-sso:
+      kind: aws/iam-identity-center
+      region: us-east-2
+      start_url: https://cplive.awsapps.com/start/
+    
+    github-oidc:
+      kind: github/oidc
+      region: us-east-2
+      spec:
+        audience: sts.amazonaws.com
+
+  identities:      
+    core-identity/managers-team-access:
+      kind: aws/permission-set
+      via:
+        provider: cplive-sso
+      principal:
+        name: "IdentityManagersTeamAccess"
+        account:
+          name: "core-identity"
+      
+    plat-dev/admin:
+      kind: aws/assume-role
+      via:
+        identity: core-identity/managers-team-access
+      principal:
+        assume_role: arn:aws:iam::068007702576:role/cplive-plat-gbl-dev-admin
+
+    plat-dev/gha:
+      kind: aws/assume-role
+      via:
+        provider: github-oidc
+      principal:
+        assume_role: arn:aws:iam::068007702576:role/cplive-plat-gbl-dev-terraform
+
+    plat-prod/admin:
+      kind: aws/assume-role
+      via:
+        identity: core-identity/managers-team-access
+      principal:
+        assume_role: arn:aws:iam::557075604627:role/cplive-plat-gbl-prod-admin
+
+    plat-staging/admin:
+      kind: aws/assume-role
+      via:
+        identity: core-identity/managers-team-access
+      principal:
+        assume_role: arn:aws:iam::675539733138:role/cplive-plat-gbl-staging-admin
+
+    plat-sandbox/admin:
+      kind: aws/assume-role
+      via:
+        identity: core-identity/managers-team-access
+      principal:
+        assume_role: arn:aws:iam::539916835077:role/cplive-plat-gbl-sandbox-admin
