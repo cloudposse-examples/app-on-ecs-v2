@@ -4,3 +4,4 @@ build-harness/
 .idea
 *.iml
 .terraform
+**/*.tfvars.json
