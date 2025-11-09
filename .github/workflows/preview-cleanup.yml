@@ -1,0 +1,40 @@
+name: Preview Cleanup
+on:
+  pull_request:
+    branches: ["main"]
+    types: [closed, unlabeled]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:      
+  cleanup:
+    runs-on: ["ubuntu-latest"]
+    if: ${{ github.event.pull_request.state == 'closed' || !contains(github.event.pull_request.labels.*.name, 'deploy') }}
+    steps:
+      - name: Install Atmos
+        uses: cloudposse/github-action-setup-atmos@v2
+        with:
+          install-wrapper: false
+          atmos-version: v1.197.0-test.34
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_wrapper: false
+          tofu_version_file: .opentofu-version          
+
+      - name: Deploy ECS Service
+        shell: bash
+        env:
+          APP_IMAGE: "${{ needs.build.outputs.image }}:${{ needs.build.outputs.tag }}"
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          atmos terraform deploy app -s preview --identity plat-dev/gha
