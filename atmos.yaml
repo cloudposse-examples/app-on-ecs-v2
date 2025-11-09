@@ -20,10 +20,6 @@ base_path: "."
 aliases:
   tofu: terraform
 
-# Import shared configuration used by all modules
-import:
-  - https://raw.githubusercontent.com/cloudposse/infra-live/refs/heads/main/auth.yaml?token=GHSAT0AAAAAACC6YEJXAEQH5BDDDM4K67QC2ICOUQA
-
 components:
   terraform:
     # Use the `tofu` command when calling "terraform" in Atmos.

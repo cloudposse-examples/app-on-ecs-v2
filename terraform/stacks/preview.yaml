@@ -49,9 +49,12 @@ terraform:
 components:
   terraform:
     app:
+      metadata:
+        # Override Terraform workspace
+        terraform_workspace_pattern: "{stage}-{component}-{attributes}"
       vars:
         attributes: 
-          - !env PR_NUMBER 0
+          - '{{ env "PR_NUMBER" | default "0" }}'
         ecs_cluster_arn: arn:aws:ecs:us-east-2:068007702576:cluster/cplive-plat-ue2-dev-ecs-platform
         vpc_id: vpc-0935d163d59e45dd0
         subnet_ids:
