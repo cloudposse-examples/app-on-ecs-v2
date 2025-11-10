@@ -51,7 +51,7 @@ components:
     app:
       metadata:
         # Override Terraform workspace
-        terraform_workspace_pattern: "{stage}-{component}-{attributes}"
+        terraform_workspace_pattern: "app-on-ecs-v2-{stage}-{component}-{attributes}"
       vars:
         attributes: 
           - '{{ env "PR_NUMBER" | default "0" }}'
