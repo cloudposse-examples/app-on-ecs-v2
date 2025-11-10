@@ -37,4 +37,4 @@ jobs:
           APP_IMAGE: "${{ needs.build.outputs.image }}:${{ needs.build.outputs.tag }}"
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          atmos terraform deploy app -s preview --identity plat-dev/gha
+          atmos terraform destroy app -s preview --identity plat-dev/gha
