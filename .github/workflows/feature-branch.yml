@@ -57,6 +57,7 @@ jobs:
   deploy:
     needs: [ build ]
     runs-on: ["ubuntu-latest"]
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'deploy') }}
     steps:
       - name: Install Atmos
         uses: cloudposse/github-action-setup-atmos@v2
@@ -76,5 +77,6 @@ jobs:
         shell: bash
         env:
           APP_IMAGE: "${{ needs.build.outputs.image }}:${{ needs.build.outputs.tag }}"
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          atmos terraform deploy app -s dev --identity plat-dev/gha
+          atmos terraform deploy app -s preview --identity plat-dev/gha
