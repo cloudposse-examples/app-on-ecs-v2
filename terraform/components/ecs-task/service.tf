@@ -54,8 +54,7 @@ module "alb_ingress" {
   unauthenticated_listener_arns = [var.lb.https_listener_arn]
   unauthenticated_hosts = [local.hostname]
   unauthenticated_paths = []
-  # When set to catch-all, make priority super high to make sure last to match
-  unauthenticated_priority     = 10
+
   default_target_group_enabled = true
 
   health_check_matcher             = "200-404"
