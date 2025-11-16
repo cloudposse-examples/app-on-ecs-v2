@@ -60,6 +60,10 @@ components:
           - '{{ env "PR_NUMBER" | default "0" }}'
         service:
           enable_execute_command: true
+        ecs: !terraform.state ecs/cluster .
+        vpc: !terraform.state vpc .
+        lb: !terraform.state ecs/cluster .alb.public
+        base_domains: !terraform.state ecs/cluster .records
         task:
           volumes:
             test:
