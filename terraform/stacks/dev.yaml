@@ -1,6 +1,6 @@
 import:
   - defaults/app.yaml
-  - deps/vpc
+  - deps/*
 
 vars:
   namespace: cplive
@@ -55,16 +55,3 @@ components:
       metadata:
         # Override Terraform workspace
         terraform_workspace: "{{ .vars.github_repo_name }}-{{ .atmos_stack }}-{{ .atmos_component }}"
-      vars:
-        ecs_cluster_arn: arn:aws:ecs:us-east-2:068007702576:cluster/cplive-plat-ue2-dev-ecs-platform
-        vpc_id: !terraform.state vpc vpc_id
-        subnet_ids:
-          - subnet-01f1542b475c2ad0d
-          - subnet-0819e15e92443f46d
-          - subnet-0e59c93dadf26b1b1
-        security_group_ids: []
-        assign_public_ip: true
-        task:
-          desired_count: 1
-        ecs_load_balancers:
-         https_listener_arn: arn:aws:elasticloadbalancing:us-east-2:068007702576:listener/app/cplive-plat-ue2-dev-ecs-pl-5bd92/80d9d8aeeeb80743/719910a545073042

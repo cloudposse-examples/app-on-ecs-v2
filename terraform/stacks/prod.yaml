@@ -1,6 +1,6 @@
 import:
   - defaults/app.yaml
-  - deps/vpc
+  - deps/*
 
 vars:
   namespace: cplive
