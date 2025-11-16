@@ -1,8 +1,0 @@
-{
-    "containerDefinitions": [
-        {
-            "name": "app",
-            "image": "{{ must_env `IMAGE` }}"
-        }
-    ]
-}

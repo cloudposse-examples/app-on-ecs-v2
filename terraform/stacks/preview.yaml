@@ -1,5 +1,6 @@
 import:
   - defaults/app.yaml
+  - deps/*
 
 vars:
   namespace: cplive
@@ -7,6 +8,8 @@ vars:
   stage: preview
   region: us-east-2
   environment: ue2
+  deps_stage: dev
+  github_repo_name: app-on-ecs-v2
 
 terraform:
   # Configure context
@@ -51,22 +54,23 @@ components:
     app:
       metadata:
         # Override Terraform workspace
-        terraform_workspace_pattern: "app-on-ecs-v2-{stage}-{component}-{attributes}"
+        terraform_workspace: '{{ .vars.github_repo_name }}-{{ .atmos_stack }}-{{ .atmos_component }}-{{ env "PR_NUMBER" | default "0" }}'
       vars:
-        attributes: 
+        attributes:
           - '{{ env "PR_NUMBER" | default "0" }}'
-        ecs_cluster_arn: arn:aws:ecs:us-east-2:068007702576:cluster/cplive-plat-ue2-dev-ecs-platform
-        vpc_id: vpc-0935d163d59e45dd0
-        subnet_ids:
-          - subnet-01f1542b475c2ad0d
-          - subnet-0819e15e92443f46d
-          - subnet-0e59c93dadf26b1b1
-        security_group_ids: []
-        assign_public_ip: true
+        service:
+          enable_execute_command: true
+        ecs: !terraform.state ecs/cluster .
+        vpc: !terraform.state vpc .
+        lb: !terraform.state ecs/cluster .alb.public
+        base_domains: !terraform.state ecs/cluster .records
         task:
-          desired_count: 1
-        ecs_load_balancers:
-          - container_name: app
-            container_port: 80
-            # elb_name: cplive-plat-ue2-dev-ecs-pl-5bd92
-            target_group_arn: arn:aws:elasticloadbalancing:us-east-2:068007702576:targetgroup/default-platform-public/5357e1d1546c18a5
+          volumes:
+            test:
+              host_path: null
+              efs_volume_configuration:
+                file_system_id: !terraform.state efs .efs_id
+                root_directory: /
+                transit_encryption: true
+                authorization_config: 
+                  iam: true

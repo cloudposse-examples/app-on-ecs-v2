@@ -20,7 +20,7 @@ jobs:
         uses: cloudposse/github-action-setup-atmos@v2
         with:
           install-wrapper: false
-          atmos-version: v1.197.0-test.34
+          atmos-version: v1.198.0-test.12
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,7 +28,9 @@ jobs:
       - name: ECR password
         shell: bash
         run: |
-          atmos auth exec --identity plat-dev/gha -- aws configure export-credentials --format env-no-export >> $GITHUB_ENV
+          atmos auth exec --identity plat-dev/admin -- aws configure export-credentials --format env-no-export >> $GITHUB_ENV
+        env:
+          ATMOS_CLI_CONFIG_PATH: .github
 
       - name: Mask ECR credentials
         shell: bash
@@ -58,6 +60,9 @@ jobs:
     needs: [ build ]
     runs-on: ["ubuntu-latest"]
     if: ${{ contains(github.event.pull_request.labels.*.name, 'deploy') }}
+    environment:
+      name: preview
+      url: ${{ steps.deploy.outputs.url }}
     steps:
       - name: Install Atmos
         uses: cloudposse/github-action-setup-atmos@v2
@@ -73,10 +78,21 @@ jobs:
           tofu_wrapper: false
           tofu_version_file: .opentofu-version          
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v5.1.0
+        with:
+          aws-region: us-east-2
+          role-to-assume: arn:aws:iam::068007702576:role/cplive-plat-gbl-dev-terraform
+
       - name: Deploy ECS Service
         shell: bash
+        id: deploy
         env:
           APP_IMAGE: "${{ needs.build.outputs.image }}:${{ needs.build.outputs.tag }}"
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          ATMOS_CLI_CONFIG_PATH: .github  
         run: |
-          atmos terraform deploy app -s preview --identity plat-dev/gha
+          atmos terraform deploy app -s preview --identity plat-dev/admin
+          URL=$(atmos terraform output app -s preview --identity plat-dev/admin --skip-init -- -raw url)
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          

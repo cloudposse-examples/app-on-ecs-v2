@@ -1,0 +1,21 @@
+components:
+  terraform:
+    ecs/cluster:
+      metadata:
+        component: ecs
+        type: abstract
+        terraform_workspace: '{{ .vars.tenant }}-{{ .vars.environment }}-{{ .vars.deps_stage }}-{{ .atmos_component | regexp.ReplaceLiteral "\\W" "-" }}'
+      backend_type: s3
+      backend:
+        s3:
+          bucket: cplive-core-ue2-root-tfstate-plat
+          encrypt: true
+          key: terraform.tfstate
+          acl: bucket-owner-full-control
+          region: us-east-2
+          assume_role:
+            role_arn: arn:aws:iam::828744362454:role/cplive-core-gbl-root-tfstate-plat-ro
+    auth:
+      identities:
+        plat-dev/admin:
+          default: true

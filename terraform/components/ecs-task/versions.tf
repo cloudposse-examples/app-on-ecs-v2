@@ -12,7 +12,7 @@ terraform {
       ## │   with module.ecs_cloudwatch_autoscaling[0].aws_appautoscaling_target.default[0],
       ## │   on .terraform/modules/ecs_cloudwatch_autoscaling/main.tf line 15, in resource "aws_appautoscaling_target" "default":
       ## │   15: resource "aws_appautoscaling_target" "default" {
-      version = ">= 4.66.1, < 6.0.0"
+      version = ">= 4.66.1"
     }
     template = {
       source  = "cloudposse/template"
@@ -21,6 +21,10 @@ terraform {
     jq = {
       source  = "massdriver-cloud/jq"
       version = ">=0.2.0"
+    }
+    utils = {
+      source  = "cloudposse/utils"
+      version = ">= 1.31.0"
     }
   }
 }
