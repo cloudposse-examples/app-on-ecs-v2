@@ -84,45 +84,16 @@ auth:
     level: Debug
   
   providers:
-    cplive-sso:
-      kind: aws/iam-identity-center
+    github-oidc:
+      kind: github/oidc
       region: us-east-2
-      start_url: https://cplive.awsapps.com/start/
-    
+      spec:
+        audience: sts.amazonaws.com
+
   identities:      
-    core-identity/managers-team-access:
-      kind: aws/permission-set
-      via:
-        provider: cplive-sso
-      principal:
-        name: "IdentityManagersTeamAccess"
-        account:
-          name: "core-identity"
-      
     plat-dev/admin:
       kind: aws/assume-role
       via:
-        identity: core-identity/managers-team-access
+        provider: github-oidc
       principal:
-        assume_role: arn:aws:iam::068007702576:role/cplive-plat-gbl-dev-admin
-
-    plat-prod/admin:
-      kind: aws/assume-role
-      via:
-        identity: core-identity/managers-team-access
-      principal:
-        assume_role: arn:aws:iam::557075604627:role/cplive-plat-gbl-prod-admin
-
-    plat-staging/admin:
-      kind: aws/assume-role
-      via:
-        identity: core-identity/managers-team-access
-      principal:
-        assume_role: arn:aws:iam::675539733138:role/cplive-plat-gbl-staging-admin
-
-    plat-sandbox/admin:
-      kind: aws/assume-role
-      via:
-        identity: core-identity/managers-team-access
-      principal:
-        assume_role: arn:aws:iam::539916835077:role/cplive-plat-gbl-sandbox-admin
+        assume_role: arn:aws:iam::068007702576:role/cplive-plat-gbl-dev-terraform
