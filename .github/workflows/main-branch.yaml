@@ -27,7 +27,9 @@ jobs:
       - name: ECR password
         shell: bash
         run: |
-          atmos auth exec --identity plat-dev/gha -- aws configure export-credentials --format env-no-export >> $GITHUB_ENV
+          atmos auth exec --identity plat-dev/admin -- aws configure export-credentials --format env-no-export >> $GITHUB_ENV
+        env:
+          ATMOS_CLI_CONFIG_PATH: .github
 
       - name: Mask ECR credentials
         shell: bash
