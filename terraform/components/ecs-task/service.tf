@@ -11,7 +11,6 @@ module "service_label" {
 }
 
 resource "aws_security_group" "ecs_service" {
-  count       = module.this.enabled ? 1 : 0
   vpc_id      = var.vpc.vpc_id
   name        = module.service_label.id
   description = "Allow ALL egress from ECS service"
@@ -23,32 +22,28 @@ resource "aws_security_group" "ecs_service" {
 }
 
 resource "aws_security_group_rule" "allow_all_egress" {
-  count             = module.this.enabled ? 1 : 0
   description       = "Allow all outbound traffic to any IPv4 address"
   type              = "egress"
   from_port         = 0
   to_port           = 0
   protocol          = "-1"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = one(aws_security_group.ecs_service[*]["id"])
+  security_group_id = aws_security_group.ecs_service.id
 }
 
 resource "aws_security_group_rule" "allow_alb_ingress" {
-  count                    = module.this.enabled ? 1 : 0
   description              = "Allow all outbound traffic to any IPv4 address"
   type                     = "ingress"
   from_port                = 0
   to_port                  = 0
   protocol                 = "-1"
   source_security_group_id = var.lb.security_group_id
-  security_group_id        = one(aws_security_group.ecs_service[*].id)
+  security_group_id        = aws_security_group.ecs_service.id
 }
 
 module "alb_ingress" {
   source  = "cloudposse/alb-ingress/aws"
   version = "0.31.0"
-
-  count = module.this.enabled ? 1 : 0
 
   vpc_id                        = var.vpc.vpc_id
   unauthenticated_listener_arns = [var.lb.https_listener_arn]
@@ -77,11 +72,10 @@ module "alb_ingress" {
 }
 
 resource "aws_ecs_service" "default" {
-  count   = module.this.enabled ? 1 : 0
   cluster = var.ecs.cluster_arn
   name    = module.this.id
 
-  task_definition = one(aws_ecs_task_definition.default[*].arn)
+  task_definition = aws_ecs_task_definition.default.arn
 
   scheduling_strategy = "REPLICA"
 
@@ -131,7 +125,7 @@ resource "aws_ecs_service" "default" {
 
   # https://www.terraform.io/docs/providers/aws/r/ecs_service.html#network_configuration
   network_configuration {
-      security_groups  = compact(aws_security_group.ecs_service[*].id)
+      security_groups  = [aws_security_group.ecs_service.id]
       subnets          = var.vpc.private_subnet_ids
       assign_public_ip = false
   }
@@ -140,8 +134,8 @@ resource "aws_ecs_service" "default" {
 
   load_balancer {
     container_name   = "app"
-    container_port   = one(local.container_definitions["app"].portMappings[*].containerPort)
-    target_group_arn = one(module.alb_ingress[*].target_group_arn)
+    container_port   = local.container_definitions["app"].portMappings[0].containerPort
+    target_group_arn = module.alb_ingress.target_group_arn
   }
   
   # health_check_grace_period_seconds  = 10

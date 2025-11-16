@@ -1,9 +1,4 @@
 locals {
-  enabled = module.this.enabled
-}
-
-
-locals {
   container_definitions_json = jsonencode([
     for container_name, container_definition in local.container_definitions :
       merge(container_definition, { name : container_name })

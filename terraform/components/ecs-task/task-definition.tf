@@ -8,12 +8,11 @@ module "task_label" {
 }
 
 resource "aws_ecs_task_definition" "default" {
-  count                 = module.this.enabled ? 1 : 0
   family                = module.this.id
   container_definitions = local.container_definitions_json
 
-  task_role_arn      = aws_iam_role.ecs_task[0].arn
-  execution_role_arn = aws_iam_role.ecs_exec[0].arn
+  task_role_arn      = aws_iam_role.ecs_task.arn
+  execution_role_arn = aws_iam_role.ecs_exec.arn
 
   requires_compatibilities = ["FARGATE", "EC2"]
   network_mode             = "awsvpc"
@@ -29,12 +28,12 @@ resource "aws_ecs_task_definition" "default" {
   #   }
   # }
 
-    dynamic "ephemeral_storage" {
-      for_each = var.task.ephemeral_storage_size == 0 ? [] : [var.task.ephemeral_storage_size]
-      content {
-        size_in_gib = var.task.ephemeral_storage_size
-      }
+  dynamic "ephemeral_storage" {
+    for_each = var.task.ephemeral_storage_size > 0 ? [true] : []
+    content {
+      size_in_gib = var.task.ephemeral_storage_size
     }
+  }
 
   # placement_constraints {
   #   type = "distinctInstance"

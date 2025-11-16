@@ -8,15 +8,12 @@ module "exec_label" {
 }
 
 resource "aws_iam_role" "ecs_exec" {
-  count              = module.this.enabled ? 1 : 0
   name               = module.exec_label.id
-  assume_role_policy = data.aws_iam_policy_document.ecs_task_exec[0].json
+  assume_role_policy = data.aws_iam_policy_document.ecs_task_exec.json
   tags               = module.this.tags
 }
 
 data "aws_iam_policy_document" "ecs_task_exec" {
-  count = module.this.enabled ? 1 : 0
-
   statement {
     actions = ["sts:AssumeRole"]
 
@@ -28,8 +25,6 @@ data "aws_iam_policy_document" "ecs_task_exec" {
 }
 
 data "aws_iam_policy_document" "ecs_exec" {
-  count = module.this.enabled ? 1 : 0
-
   statement {
     effect    = "Allow"
     resources = ["*"]
@@ -48,8 +43,7 @@ data "aws_iam_policy_document" "ecs_exec" {
 }
 
 resource "aws_iam_role_policy" "ecs_exec" {
-  count  = module.this.enabled ? 1 : 0
   name   = module.exec_label.id
-  policy = data.aws_iam_policy_document.ecs_exec[0].json
-  role   = aws_iam_role.ecs_exec[0].id
+  policy = data.aws_iam_policy_document.ecs_exec.json
+  role   = aws_iam_role.ecs_exec.id
 }
