@@ -58,6 +58,9 @@ jobs:
     needs: [ build ]
     runs-on: ["ubuntu-latest"]
     if: ${{ contains(github.event.pull_request.labels.*.name, 'deploy') }}
+    environment:
+      name: preview
+      url: ${{ steps.deploy.outputs.url }}
     steps:
       - name: Install Atmos
         uses: cloudposse/github-action-setup-atmos@v2
@@ -75,8 +78,12 @@ jobs:
 
       - name: Deploy ECS Service
         shell: bash
+        id: deploy
         env:
           APP_IMAGE: "${{ needs.build.outputs.image }}:${{ needs.build.outputs.tag }}"
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           atmos terraform deploy app -s preview --identity plat-dev/gha
+          URL=$(atmos terraform output app -s preview --skip-init -- -raw url)
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          
