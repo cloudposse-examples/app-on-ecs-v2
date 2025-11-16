@@ -55,4 +55,10 @@ components:
       metadata:
         # Override Terraform workspace
         terraform_workspace: "{{ .vars.github_repo_name }}-{{ .atmos_stack }}-{{ .atmos_component }}"
-      vars: {}
+      vars:
+        task:
+          volumes:
+            test:
+              efs_volume_configuration:
+                root_directory: /staging
+
