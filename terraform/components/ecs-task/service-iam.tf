@@ -1,6 +1,6 @@
 locals {
-  # Remove trailing false to enable the ECS service role. Required for ALB integration with network mode different from "awsvpc"
-  ecs_service_enabled = module.this.enabled && false
+  # Set true to enable the ECS service role. Required for ALB integration with network mode different from "awsvpc"
+  ecs_service_enabled = false
 }
 
 resource "aws_iam_role" "ecs_service" {
