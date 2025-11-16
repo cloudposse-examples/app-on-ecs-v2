@@ -5,6 +5,10 @@ components:
         component: ecs-task
       vars:
         name: app
+        ecs: !terraform.state ecs/cluster .
+        vpc: !terraform.state vpc .
+        lb: !terraform.state ecs/cluster .alb.public
+        base_domains: !terraform.state ecs/cluster .records
         containers:
           app:
             image: !env APP_IMAGE 068007702576.dkr.ecr.us-east-2.amazonaws.com/cloudposse-examples/app-on-ecs-v2:sha-2ee4206
