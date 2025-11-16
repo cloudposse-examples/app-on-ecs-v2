@@ -1,5 +1,5 @@
 locals {
-  hostname = replace(var.base_domains.public, "*", var.github_repo_name)
+  hostname = replace(var.base_domains.public, "*", module.this.id)
 }
 
 module "service_label" {
