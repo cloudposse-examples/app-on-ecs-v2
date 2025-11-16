@@ -77,14 +77,20 @@ jobs:
           tofu_wrapper: false
           tofu_version_file: .opentofu-version          
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v5.1.0
+        with:
+          aws-region: us-east-2
+          role-to-assume: arn:aws:iam::068007702576:role/cplive-plat-gbl-dev-terraform
+  
       - name: Deploy ECS Service
         shell: bash
         id: deploy
         env:
           APP_IMAGE: "${{ needs.promote.outputs.image }}:${{ needs.promote.outputs.tag }}"
         run: |
-          atmos terraform deploy app -s staging --identity plat-dev/gha
-          URL=$(atmos terraform output app -s staging --skip-init -- -raw url)
+          atmos terraform deploy app -s staging --identity plat-dev/admin
+          URL=$(atmos terraform output app -s staging --identity plat-dev/admin --skip-init -- -raw url)
           echo "url=$URL" >> $GITHUB_OUTPUT
 
   deploy-production:
@@ -108,14 +114,20 @@ jobs:
         with:
           tofu_wrapper: false
           tofu_version_file: .opentofu-version       
-          
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v5.1.0
+        with:
+          aws-region: us-east-2
+          role-to-assume: arn:aws:iam::068007702576:role/cplive-plat-gbl-dev-terraform
+                  
       - name: Deploy ECS Service
         shell: bash
         id: deploy
         env:
           APP_IMAGE: "${{ needs.promote.outputs.image }}:${{ needs.promote.outputs.tag }}"
         run: |
-          atmos terraform deploy app -s prod --identity plat-dev/gha
-          URL=$(atmos terraform output app -s prod --identity plat-dev/gha --skip-init -- -raw url)
+          atmos terraform deploy app -s prod --identity plat-dev/admin
+          URL=$(atmos terraform output app -s prod --identity plat-dev/admin --skip-init -- -raw url)
           echo "url=$URL" >> $GITHUB_OUTPUT
           
