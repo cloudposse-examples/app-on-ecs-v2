@@ -4,7 +4,7 @@ module "ecs_cloudwatch_autoscaling" {
 
   count = local.enabled ? 1 : 0
 
-  service_name          = one(aws_ecs_service.default[*].name)
+  service_name          = aws_ecs_service.default[0].name
   cluster_name          = var.ecs.cluster_name
   min_capacity          = var.autoscaling.min_capacity
   max_capacity          = var.autoscaling.max_capacity
