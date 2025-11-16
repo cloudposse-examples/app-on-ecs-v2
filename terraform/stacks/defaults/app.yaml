@@ -36,4 +36,10 @@ components:
         task:
           volumes:
             test:
-              host_path: /tmp
+              efs_volume_configuration:
+                file_system_id: !terraform.state efs .efs_id
+                root_directory: /
+                transit_encryption: true
+                authorization_config: 
+                  iam: true
+

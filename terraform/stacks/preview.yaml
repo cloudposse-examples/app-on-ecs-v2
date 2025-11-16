@@ -60,13 +60,3 @@ components:
           - '{{ env "PR_NUMBER" | default "0" }}'
         service:
           enable_execute_command: true
-        task:
-          volumes:
-            test:
-              host_path: null
-              efs_volume_configuration:
-                file_system_id: !terraform.state efs .efs_id
-                root_directory: /
-                transit_encryption: true
-                authorization_config: 
-                  iam: true
