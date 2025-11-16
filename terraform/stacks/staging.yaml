@@ -1,5 +1,6 @@
 import:
   - defaults/app.yaml
+  - deps/vpc
 
 vars:
   namespace: cplive
@@ -7,6 +8,8 @@ vars:
   stage: staging
   region: us-east-2
   environment: ue2
+  deps_stage: dev
+  github_repo_name: app-on-ecs-v2
 
 terraform:
   # Configure context
@@ -49,19 +52,7 @@ terraform:
 components:
   terraform:
     app:
-      vars:
-        ecs_cluster_arn: arn:aws:ecs:us-east-2:068007702576:cluster/cplive-plat-ue2-dev-ecs-platform
-        vpc_id: vpc-0935d163d59e45dd0
-        subnet_ids:
-          - subnet-01f1542b475c2ad0d
-          - subnet-0819e15e92443f46d
-          - subnet-0e59c93dadf26b1b1
-        security_group_ids: []
-        assign_public_ip: true
-        task:
-          desired_count: 1
-        ecs_load_balancers:
-          - container_name: app
-            container_port: 80
-            # elb_name: cplive-plat-ue2-dev-ecs-pl-5bd92
-            target_group_arn: arn:aws:elasticloadbalancing:us-east-2:068007702576:targetgroup/default-platform-public/5357e1d1546c18a5
+      metadata:
+        # Override Terraform workspace
+        terraform_workspace: "{{ .vars.github_repo_name }}-{{ .atmos_stack }}-{{ .atmos_component }}"
+      vars: {}
