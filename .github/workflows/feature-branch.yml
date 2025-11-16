@@ -29,6 +29,8 @@ jobs:
         shell: bash
         run: |
           atmos auth exec --identity plat-dev/admin -- aws configure export-credentials --format env-no-export >> $GITHUB_ENV
+        env:
+          ATMOS_CLI_CONFIG_PATH: .github
 
       - name: Mask ECR credentials
         shell: bash
@@ -82,6 +84,7 @@ jobs:
         env:
           APP_IMAGE: "${{ needs.build.outputs.image }}:${{ needs.build.outputs.tag }}"
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          ATMOS_CLI_CONFIG_PATH: .github  
         run: |
           atmos terraform deploy app -s preview --identity plat-dev/admin
           URL=$(atmos terraform output app -s previe --identity plat-dev/admin --skip-init -- -raw url)
