@@ -164,8 +164,16 @@ variable "autoscaling" {
     max_capacity          = optional(number, 2)
     scale_down_cooldown   = optional(number, 300)
     scale_up_cooldown     = optional(number, 60)
-    scale_up_adjustment   = optional(number, 1)
-    scale_down_adjustment = optional(number, -1)
+    scale_up_step_adjustments   = optional(object({
+      metric_interval_lower_bound = optional(number, 0)
+      metric_interval_upper_bound = optional(number, null)
+      scaling_adjustment          = optional(number, 1)
+    }), {})
+    scale_down_step_adjustments = optional(object({
+      metric_interval_lower_bound = optional(number, null)
+      metric_interval_upper_bound = optional(number, 0)
+      scaling_adjustment          = optional(number, -1)
+    }), {})
     rule = optional(object({
       low = optional(object({
         threshold = optional(number, 20)
