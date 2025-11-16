@@ -83,8 +83,7 @@ jobs:
           APP_IMAGE: "${{ needs.build.outputs.image }}:${{ needs.build.outputs.tag }}"
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          atmos auth login --identity plat-dev/gha
-          atmos terraform deploy app -s preview --identity plat-dev/gha
-          URL=$(atmos terraform output app -s previe --identity plat-dev/gha --skip-init -- -raw url)
+          atmos terraform deploy app -s preview --identity plat-dev/admin
+          URL=$(atmos terraform output app -s previe --identity plat-dev/admin --skip-init -- -raw url)
           echo "url=$URL" >> $GITHUB_OUTPUT
           
