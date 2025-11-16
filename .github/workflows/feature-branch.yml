@@ -84,6 +84,6 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           atmos terraform deploy app -s preview --identity plat-dev/gha
-          URL=$(atmos terraform output app -s preview --skip-init -- -raw url)
+          URL=$(atmos terraform output app -s previe --identity plat-dev/gha --skip-init -- -raw url)
           echo "url=$URL" >> $GITHUB_OUTPUT
           

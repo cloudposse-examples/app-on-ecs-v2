@@ -81,7 +81,7 @@ jobs:
           APP_IMAGE: "${{ needs.build.outputs.image }}:${{ needs.build.outputs.tag }}"
         run: |
           atmos terraform deploy app -s dev --identity plat-dev/gha
-          URL=$(atmos terraform output app -s dev --skip-init -- -raw url)
+          URL=$(atmos terraform output app -s dev --identity plat-dev/gha --skip-init -- -raw url)
           echo "url=$URL" >> $GITHUB_OUTPUT
 
   release:
