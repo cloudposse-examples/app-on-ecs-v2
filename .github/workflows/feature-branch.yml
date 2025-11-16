@@ -93,6 +93,6 @@ jobs:
           ATMOS_CLI_CONFIG_PATH: .github  
         run: |
           atmos terraform deploy app -s preview --identity plat-dev/admin
-          URL=$(atmos terraform output app -s previe --identity plat-dev/admin --skip-init -- -raw url)
+          URL=$(atmos terraform output app -s preview --identity plat-dev/admin --skip-init -- -raw url)
           echo "url=$URL" >> $GITHUB_OUTPUT
           
