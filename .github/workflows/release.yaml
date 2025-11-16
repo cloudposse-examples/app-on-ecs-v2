@@ -88,6 +88,7 @@ jobs:
         id: deploy
         env:
           APP_IMAGE: "${{ needs.promote.outputs.image }}:${{ needs.promote.outputs.tag }}"
+          ATMOS_CLI_CONFIG_PATH: .github
         run: |
           atmos terraform deploy app -s staging --identity plat-dev/admin
           URL=$(atmos terraform output app -s staging --identity plat-dev/admin --skip-init -- -raw url)
@@ -126,6 +127,7 @@ jobs:
         id: deploy
         env:
           APP_IMAGE: "${{ needs.promote.outputs.image }}:${{ needs.promote.outputs.tag }}"
+          ATMOS_CLI_CONFIG_PATH: .github
         run: |
           atmos terraform deploy app -s prod --identity plat-dev/admin
           URL=$(atmos terraform output app -s prod --identity plat-dev/admin --skip-init -- -raw url)

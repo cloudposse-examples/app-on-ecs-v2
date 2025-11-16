@@ -42,5 +42,6 @@ jobs:
         env:
           APP_IMAGE: "${{ needs.build.outputs.image }}:${{ needs.build.outputs.tag }}"
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          ATMOS_CLI_CONFIG_PATH: .github
         run: |
           atmos terraform destroy app -s preview --identity plat-dev/admin -auto-approve
