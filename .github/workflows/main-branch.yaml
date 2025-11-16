@@ -85,6 +85,7 @@ jobs:
         id: deploy
         env:
           APP_IMAGE: "${{ needs.build.outputs.image }}:${{ needs.build.outputs.tag }}"
+          ATMOS_CLI_CONFIG_PATH: .github
         run: |
           atmos terraform deploy app -s dev --identity plat-dev/admin
           URL=$(atmos terraform output app -s dev --identity plat-dev/admin --skip-init -- -raw url)

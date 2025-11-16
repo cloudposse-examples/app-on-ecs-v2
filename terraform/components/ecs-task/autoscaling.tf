@@ -1,6 +1,6 @@
 module "ecs_cloudwatch_autoscaling" {
   source  = "cloudposse/ecs-cloudwatch-autoscaling/aws"
-  version = "0.7.3"
+  version = "1.0.0"
 
   count = local.enabled ? 1 : 0
 
@@ -8,10 +8,11 @@ module "ecs_cloudwatch_autoscaling" {
   cluster_name          = var.ecs.cluster_name
   min_capacity          = var.autoscaling.min_capacity
   max_capacity          = var.autoscaling.max_capacity
-  scale_up_adjustment   = var.autoscaling.scale_up_adjustment
-  scale_up_cooldown     = var.autoscaling.scale_up_cooldown
-  scale_down_adjustment = var.autoscaling.scale_down_adjustment
-  scale_down_cooldown   = var.autoscaling.scale_down_cooldown
+
+  scale_up_step_adjustments   = [var.autoscaling.scale_up_step_adjustments]
+  scale_up_cooldown           = var.autoscaling.scale_up_cooldown
+  scale_down_step_adjustments = [var.autoscaling.scale_down_step_adjustments]
+  scale_down_cooldown         = var.autoscaling.scale_down_cooldown
 
   context = module.this.context
 
