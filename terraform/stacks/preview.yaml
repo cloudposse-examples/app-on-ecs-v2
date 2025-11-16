@@ -60,8 +60,3 @@ components:
           - '{{ env "PR_NUMBER" | default "0" }}'
         service:
           enable_execute_command: true
-        task:
-          volumes:
-            test:
-              efs_volume_configuration:
-                root_directory: /preview-{{ env "PR_NUMBER" | default "0" }}
