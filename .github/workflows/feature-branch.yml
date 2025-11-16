@@ -78,11 +78,11 @@ jobs:
           tofu_wrapper: false
           tofu_version_file: .opentofu-version          
 
-      # - name: Configure AWS Credentials
-      #   uses: aws-actions/configure-aws-credentials@v5.1.0
-      #   with:
-      #     aws-region: us-east-2
-      #     role-to-assume: arn:aws:iam::068007702576:role/cplive-plat-gbl-dev-terraform
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v5.1.0
+        with:
+          aws-region: us-east-2
+          role-to-assume: arn:aws:iam::068007702576:role/cplive-plat-gbl-dev-terraform
 
       - name: Deploy ECS Service
         shell: bash
@@ -92,7 +92,6 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           ATMOS_CLI_CONFIG_PATH: .github  
         run: |
-          atmos auth login --identity plat-dev/admin
           atmos terraform deploy app -s preview --identity plat-dev/admin
           URL=$(atmos terraform output app -s preview --identity plat-dev/admin --skip-init -- -raw url)
           echo "url=$URL" >> $GITHUB_OUTPUT
