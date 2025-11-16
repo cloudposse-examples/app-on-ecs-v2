@@ -107,8 +107,8 @@ jobs:
       - uses: opentofu/setup-opentofu@v1
         with:
           tofu_wrapper: false
-          tofu_version_file: .opentofu-version          
-
+          tofu_version_file: .opentofu-version       
+          
       - name: Deploy ECS Service
         shell: bash
         id: deploy
