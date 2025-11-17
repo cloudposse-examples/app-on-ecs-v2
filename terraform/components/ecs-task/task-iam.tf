@@ -10,6 +10,7 @@ locals {
 
 data "aws_caller_identity" "current" {}
 
+// Define the IAM role for the ECS task
 resource "aws_iam_role" "ecs_task" {
   name               = module.task_label.id
   assume_role_policy = data.aws_iam_policy_document.ecs_task.json
@@ -28,6 +29,7 @@ data "aws_iam_policy_document" "ecs_task" {
   }
 }
 
+// Attach managed IAM policies to the ECS task role
 resource "aws_iam_role_policy_attachment" "ecs_task" {
   for_each = toset([
     "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
@@ -67,6 +69,8 @@ data "aws_iam_policy_document" "ecs_task_policy" {
   }
 }
 
+// Define and attach the IAM policy to the ECS task role
+// Uses the IAM policy document defined earlier
 resource "aws_iam_role_policy" "ecs_task" {
   name   = module.task_label.id
   policy = data.aws_iam_policy_document.ecs_task_policy.json

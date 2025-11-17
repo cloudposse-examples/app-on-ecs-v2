@@ -7,6 +7,7 @@ module "exec_label" {
   context = module.this.context
 }
 
+// Define an IAM role for ECS execution with trust relationship
 resource "aws_iam_role" "ecs_exec" {
   name               = module.exec_label.id
   assume_role_policy = data.aws_iam_policy_document.ecs_task_exec.json

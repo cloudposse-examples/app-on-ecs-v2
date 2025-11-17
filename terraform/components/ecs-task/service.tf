@@ -10,6 +10,7 @@ module "service_label" {
   context = module.this.context
 }
 
+// Define security group for ECS service
 resource "aws_security_group" "ecs_service" {
   vpc_id      = var.vpc.vpc_id
   name        = module.service_label.id

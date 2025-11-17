@@ -7,6 +7,7 @@ module "task_label" {
   context = module.this.context
 }
 
+// Define an ECS task definition
 resource "aws_ecs_task_definition" "default" {
   family                = module.this.id
   container_definitions = local.container_definitions_json

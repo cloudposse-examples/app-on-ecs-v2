@@ -3,6 +3,7 @@ locals {
   ecs_service_enabled = false
 }
 
+// IAM role for ECS service integration with ALB
 resource "aws_iam_role" "ecs_service" {
   count              = local.ecs_service_enabled ? 1 : 0
   name               = module.service_label.id

@@ -3,11 +3,6 @@ variable "region" {
   description = "AWS Region"
 }
 
-variable "github_repo_name" {
-  type        = string
-  description = "The GitHub repository name"
-}
-
 # https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html
 variable "containers" {
   type = map(object({
@@ -132,7 +127,7 @@ variable "containers" {
     })))
     workingDirectory = optional(string)
   }))
-  description = "Container definition overrides which allows for extra keys or overriding existing keys."
+  description = "Map containing container definitions, allowing for key-value overrides."
   default     = {}
 
   validation {
@@ -154,7 +149,7 @@ variable "service" {
     force_new_deployment               = optional(bool, false)
     enable_execute_command             = optional(bool, false)
   })
-  description = "The service configuration"
+  description = "Configuration for service parameters."
   default     = {}
 }
 
@@ -162,13 +157,13 @@ variable "autoscaling" {
   type = object({
     min_capacity          = optional(number, 1)
     max_capacity          = optional(number, 2)
-    scale_down_cooldown   = optional(number, 300)
     scale_up_cooldown     = optional(number, 60)
     scale_up_step_adjustments   = optional(object({
       metric_interval_lower_bound = optional(number, 0)
       metric_interval_upper_bound = optional(number, null)
       scaling_adjustment          = optional(number, 1)
     }), {})
+    scale_down_cooldown   = optional(number, 300)
     scale_down_step_adjustments = optional(object({
       metric_interval_lower_bound = optional(number, null)
       metric_interval_upper_bound = optional(number, 0)
@@ -187,7 +182,7 @@ variable "autoscaling" {
       }), {})
     }), {})
   })
-  description = "The autoscaling configuration by CPU utilization"
+  description = "Autoscaling policies based on CPU utilization thresholds and associated rules."
   default     = {}
 }
 
@@ -210,7 +205,7 @@ variable "task" {
       }), null)
     })), {})
   })
-  description = "Feed inputs into ecs_alb_service_task module"
+  description = "Specifications for ECS task resources and storage options."
   default     = {}
 }
 
