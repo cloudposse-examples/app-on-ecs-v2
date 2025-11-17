@@ -1,49 +1,13 @@
 import:
+  - _default.yaml
   - defaults/app.yaml
   - deps/*
 
 vars:
-  namespace: cplive
-  tenant: plat
   stage: prod
-  region: us-east-2
-  environment: ue2
   deps_stage: dev
-  github_repo_name: app-on-ecs-v2
 
 terraform:
-  # Configure context
-  vars:
-    label_order:
-      - namespace
-      - tenant
-      - environment
-      - stage
-      - name
-      - attributes
-    descriptor_formats:
-      account_name:
-        format: "%v-%v"
-        labels:
-          - tenant
-          - stage
-      stack:
-        format: "%v-%v-%v"
-        labels:
-          - tenant
-          - environment
-          - stage
-
-  backend_type: s3
-  backend:
-    s3:
-      bucket: cplive-plat-ue2-dev-tfstate-apps
-      use_lockfile: true
-      encrypt: true
-      key: terraform.tfstate
-      acl: bucket-owner-full-control
-      region: us-east-2
-
   auth:
     identities:
       plat-dev/admin:
