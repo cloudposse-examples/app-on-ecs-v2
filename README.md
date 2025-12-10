@@ -1,4 +1,4 @@
-# example-app-on-ecs <a href="https://cloudposse.com/"><img align="right" src="https://cloudposse.com/logo-300x69.svg" width="150" /></a>
+# app-on-ecs-v2 <a href="https://cloudposse.com/"><img align="right" src="https://cloudposse.com/logo-300x69.svg" width="150" /></a>
 
 
 [![Latest Release](https://img.shields.io/github/release/cloudposse-examples/app-on-ecs-v2.svg?style=for-the-badge)](https://github.com/cloudposse-examples/app-on-ecs-v2/releases/latest)

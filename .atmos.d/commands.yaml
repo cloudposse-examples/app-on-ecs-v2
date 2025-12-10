@@ -1,0 +1,13 @@
+# Custom Atmos commands for local development
+# Usage: atmos up, atmos down
+
+commands:
+  - name: up
+    description: Start the application locally using Docker Compose
+    steps:
+      - docker-compose -f test/docker-compose.yml up --build
+
+  - name: down
+    description: Stop the local Docker Compose application
+    steps:
+      - docker-compose -f test/docker-compose.yml down

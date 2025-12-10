@@ -4,7 +4,7 @@
 # Run `atmos docs generate readme` to rebuild the `README.md`
 #
 
-name: example-app-on-ecs
+name: app-on-ecs-v2
 
 license: APACHE2
 
