@@ -24,13 +24,15 @@ atmos list components                   # Shows app component per stack
 
 ## Project Structure
 
-- `main.go` - Go web server serving static HTML
-- `Dockerfile` - Multi-stage Docker build (Alpine)
+- `app/` - Go web application (see `app/README.md`)
+  - `main.go` - Go web server serving static HTML
+  - `Dockerfile` - Multi-stage Docker build (Alpine)
+  - `public/` - Static HTML assets
+  - `rootfs/` - Container filesystem overlay
 - `atmos.yaml` - Atmos CLI configuration
 - `.atmos.d/commands.yaml` - Custom Atmos commands (`atmos up`, `atmos down`)
 - `terraform/components/ecs-task/` - Main Terraform component
 - `terraform/stacks/` - Environment configurations
-- `public/` - Static HTML assets
 - `test/docker-compose.yml` - Local dev environment
 
 ## Stack Configuration
@@ -94,8 +96,7 @@ The app component depends on external infrastructure via `!terraform.state` look
 
 ## Environment Variables (Go App)
 
-- `COLOR` - Background color for index page (default: `green`)
-- `LISTEN` - Server listen address (default: `:8080`)
+See `app/README.md` for application environment variables.
 
 ## CI/CD Pipeline
 

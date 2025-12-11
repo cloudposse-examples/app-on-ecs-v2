@@ -16,21 +16,7 @@ This repository demonstrates an elegant, self-contained approach to deploying co
 
 ### Application
 
-A simple Go web server that serves static HTML pages.
-
-| Endpoint | Description |
-|----------|-------------|
-| `/` | Index page with configurable color and request counter |
-| `/dashboard` | Dashboard view |
-| `/healthz` | Health check endpoint (returns `OK`) |
-| `/shutdown` | Graceful shutdown trigger |
-
-#### Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `COLOR` | `green` | Background color for the index page |
-| `LISTEN` | `:8080` | Address and port to listen on |
+A simple Go web server that serves static HTML pages. See [`app/README.md`](app/README.md) for application details.
 
 ### Infrastructure
 
@@ -231,12 +217,12 @@ Container configuration is defined in `terraform/stacks/defaults/app.yaml` and c
 
 ```
 .
-├── main.go                    # Go application
-├── Dockerfile                 # Multi-stage container build
+├── app/                       # Go application
+│   ├── main.go                # Web server
+│   ├── Dockerfile             # Multi-stage container build
+│   ├── public/                # Static HTML assets
+│   └── rootfs/                # Container filesystem overlay
 ├── atmos.yaml                 # Atmos configuration
-├── README.yaml                # README source (this file)
-├── public/                    # Static HTML assets
-├── rootfs/                    # Container filesystem overlay
 ├── terraform/
 │   ├── components/            # Terraform/OpenTofu modules
 │   │   └── ecs-task/          # ECS task definition component
@@ -247,7 +233,8 @@ Container configuration is defined in `terraform/stacks/defaults/app.yaml` and c
 │       └── preview.yaml
 └── .github/
     ├── workflows/             # CI/CD pipelines
-    └── README.md.gotmpl       # README template
+    ├── README.yaml            # README source
+    └── README.md              # Generated README
 ```
 
 ### Building Documentation

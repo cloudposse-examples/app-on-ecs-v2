@@ -50,6 +50,7 @@ jobs:
           organization: cloudposse-examples
           repository: app-on-ecs-v2
           registry: ${{ vars.ECR_REGISTRY }}
+          workdir: app
           # Disable provenance to avoid shell escaping bug in metadata step
           # See: https://github.com/actions/runner/issues/1656
           provenance: 'false'

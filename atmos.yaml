@@ -82,8 +82,8 @@ settings:
 docs:
   generate:
     readme:
-      base-dir: .
-      template: ".github/README.md.gotmpl"
+      base-dir: .github
+      template: "README.md.gotmpl"
       output: "README.md"
       terraform:
         enabled: false
