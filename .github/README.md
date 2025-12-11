@@ -16,7 +16,7 @@ This repository demonstrates an elegant, self-contained approach to deploying co
 
 ### Application
 
-A simple Go web server that serves static HTML pages. See [`app/README.md`](app/README.md) for application details.
+A simple Go web server that serves static HTML pages. See [`app/`](app/) for application details.
 
 ### Infrastructure
 
