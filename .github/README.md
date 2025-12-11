@@ -221,12 +221,16 @@ Container configuration is defined in `terraform/stacks/defaults/app.yaml` and c
 │   ├── main.go                # Web server
 │   ├── Dockerfile             # Multi-stage container build
 │   ├── public/                # Static HTML assets
-│   └── rootfs/                # Container filesystem overlay
+│   ├── rootfs/                # Container filesystem overlay
+│   └── test/                  # Local development (docker-compose)
 ├── atmos.yaml                 # Atmos configuration
+├── .atmos.d/                  # Atmos custom commands
 ├── terraform/
 │   ├── components/            # Terraform/OpenTofu modules
 │   │   └── ecs-task/          # ECS task definition component
 │   └── stacks/                # Environment configurations
+│       ├── defaults/          # Shared component config
+│       ├── deps/              # Dependency references
 │       ├── dev.yaml
 │       ├── staging.yaml
 │       ├── prod.yaml
