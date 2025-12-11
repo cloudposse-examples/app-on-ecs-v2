@@ -1,6 +1,4 @@
 release/*
-.build-harness
-build-harness/
 .idea
 *.iml
 .terraform
