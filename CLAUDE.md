@@ -29,11 +29,11 @@ atmos list components                   # Shows app component per stack
   - `Dockerfile` - Multi-stage Docker build (Alpine)
   - `public/` - Static HTML assets
   - `rootfs/` - Container filesystem overlay
+  - `test/docker-compose.yml` - Local dev environment
 - `atmos.yaml` - Atmos CLI configuration
 - `.atmos.d/commands.yaml` - Custom Atmos commands (`atmos up`, `atmos down`)
 - `terraform/components/ecs-task/` - Main Terraform component
 - `terraform/stacks/` - Environment configurations
-- `test/docker-compose.yml` - Local dev environment
 
 ## Stack Configuration
 
