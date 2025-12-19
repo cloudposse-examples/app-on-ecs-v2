@@ -44,15 +44,12 @@ jobs:
 
       - name: Build
         id: build
-        uses: cloudposse/github-action-docker-build-push@v2
+        uses: cloudposse/github-action-docker-build-push@main
         with:
           organization: cloudposse-examples
           repository: app-on-ecs-v2
           registry: ${{ vars.ECR_REGISTRY }}
           workdir: app
-          # Disable provenance to avoid shell escaping bug in metadata step
-          # See: https://github.com/actions/runner/issues/1656
-          provenance: 'false'
 
     outputs:
       image: ${{ steps.build.outputs.image }}
