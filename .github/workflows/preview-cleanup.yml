@@ -21,7 +21,7 @@ jobs:
         uses: cloudposse/github-action-setup-atmos@v2
         with:
           install-wrapper: false
-          atmos-version: v1.198.0-test.12
+          atmos-version: v1.203.0
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,7 +35,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v5.1.0
         with:
           aws-region: us-east-2
-          role-to-assume: arn:aws:iam::068007702576:role/cplive-plat-gbl-dev-terraform
+          role-to-assume: arn:aws:iam::068007702576:role/cplive-plat-gbl-dev-app-on-ecs-v2
     
       - name: Deploy ECS Service
         shell: bash
