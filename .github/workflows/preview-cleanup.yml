@@ -21,7 +21,6 @@ jobs:
         uses: cloudposse/github-action-setup-atmos@v2
         with:
           install-wrapper: false
-          atmos-version: v1.198.0-test.12
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,12 +30,6 @@ jobs:
           tofu_wrapper: false
           tofu_version_file: .opentofu-version          
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v5.1.0
-        with:
-          aws-region: us-east-2
-          role-to-assume: arn:aws:iam::068007702576:role/cplive-plat-gbl-dev-terraform
-    
       - name: Deploy ECS Service
         shell: bash
         env:
@@ -44,4 +37,4 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           ATMOS_CLI_CONFIG_PATH: .github
         run: |
-          atmos terraform destroy app -s preview --identity plat-dev/admin -auto-approve
+          atmos terraform destroy app -s preview -auto-approve
