@@ -44,7 +44,7 @@ jobs:
 
       - name: Build
         id: build
-        uses: cloudposse/github-action-docker-build-push@main
+        uses: cloudposse/github-action-docker-build-push@v2
         with:
           organization: cloudposse-examples
           repository: app-on-ecs-v2
