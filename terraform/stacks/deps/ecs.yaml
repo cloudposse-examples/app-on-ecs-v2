@@ -15,7 +15,3 @@ components:
           region: us-east-2
           assume_role:
             role_arn: arn:aws:iam::828744362454:role/cplive-core-gbl-root-tfstate-plat-ro
-    auth:
-      identities:
-        plat-dev/admin:
-          default: true

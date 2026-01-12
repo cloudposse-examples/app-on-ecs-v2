@@ -29,23 +29,42 @@ description: |-
 introduction: |-
   ### Application
 
-  A simple Go web server that serves static HTML pages.
-
-  | Endpoint | Description |
-  |----------|-------------|
-  | `/` | Index page with configurable color and request counter |
-  | `/dashboard` | Dashboard view |
-  | `/healthz` | Health check endpoint (returns `OK`) |
-  | `/shutdown` | Graceful shutdown trigger |
-
-  #### Environment Variables
-
-  | Variable | Default | Description |
-  |----------|---------|-------------|
-  | `COLOR` | `green` | Background color for the index page |
-  | `LISTEN` | `:8080` | Address and port to listen on |
+  A simple Go web server designed to demonstrate container deployment strategies. Each request increments a counter, and the background color is configurable - making it easy to visualize blue/green deployments and load balancing. The `/dashboard` endpoint displays a grid of auto-refreshing iframes to show traffic distribution across instances. See [`app/`](app/) for details.
 
   ### Infrastructure
+
+  ```mermaid
+  graph TB
+      subgraph "AWS Account"
+          subgraph "VPC"
+              subgraph "Private Subnets"
+                  ECS[ECS Fargate Service]
+                  EFS[(EFS Volume)]
+              end
+              subgraph "Public Subnets"
+                  ALB[Application Load Balancer]
+              end
+          end
+          ECR[ECR Registry]
+          R53[Route 53]
+      end
+
+      Internet((Internet)) --> R53
+      R53 --> ALB
+      ALB --> ECS
+      ECS --> EFS
+      ECR -.-> ECS
+
+      subgraph "Dependencies (Pre-existing)"
+          VPC_DEP[VPC Component]
+          ECS_DEP[ECS Cluster Component]
+          EFS_DEP[EFS Component]
+      end
+
+      VPC_DEP -.->|vpc_id, subnet_ids| ECS
+      ECS_DEP -.->|cluster_arn, alb_listener_arn| ECS
+      EFS_DEP -.->|efs_id| EFS
+  ```
 
   This project uses:
 
@@ -70,107 +89,14 @@ usage: |-
 
   ### CI/CD Workflows
 
+  See [`.github/workflows/`](.github/workflows/) for detailed workflow diagrams.
+
   | Workflow | Trigger | Action |
   |----------|---------|--------|
   | `main-branch.yaml` | Push to `main` | Build image → Deploy to dev → Create draft release |
   | `release.yaml` | Published release | Promote image → Deploy to staging and prod |
   | `feature-branch.yml` | PR with `deploy` label | Build image → Deploy to preview environment |
   | `preview-cleanup.yml` | PR closed | Destroy preview environment |
-  | `validate.yml` | Pull request | Run validation checks |
-
-  #### Main Branch Workflow
-
-  ```mermaid
-  sequenceDiagram
-      participant Dev as Developer
-      participant GH as GitHub
-      participant GA as GitHub Actions
-      participant ECR as AWS ECR
-      participant Atmos as Atmos CLI
-      participant TF as OpenTofu
-      participant ECS as AWS ECS
-
-      Dev->>GH: Push to main
-      GH->>GA: Trigger main-branch workflow
-      GA->>ECR: Build & push Docker image
-      ECR-->>GA: Image pushed (sha-xxx)
-      GA->>Atmos: atmos terraform deploy app -s dev
-      Atmos->>TF: tofu apply
-      TF->>ECS: Update ECS service
-      ECS-->>GA: Deployment complete
-      GA->>GH: Create draft release
-  ```
-
-  #### Release Workflow
-
-  ```mermaid
-  sequenceDiagram
-      participant Dev as Developer
-      participant GH as GitHub
-      participant GA as GitHub Actions
-      participant ECR as AWS ECR
-      participant Atmos as Atmos CLI
-      participant TF as OpenTofu
-      participant ECS as AWS ECS
-
-      Dev->>GH: Publish release (v1.0.0)
-      GH->>GA: Trigger release workflow
-      GA->>ECR: Promote image tag (sha-xxx → v1.0.0)
-      GA->>Atmos: atmos terraform deploy app -s staging
-      Atmos->>TF: tofu apply
-      TF->>ECS: Update staging ECS service
-      ECS-->>GA: Staging deployed
-      GA->>Atmos: atmos terraform deploy app -s prod
-      Atmos->>TF: tofu apply
-      TF->>ECS: Update prod ECS service
-      ECS-->>GA: Production deployed
-  ```
-
-  #### Feature Branch Workflow (Preview Environments)
-
-  ```mermaid
-  sequenceDiagram
-      participant Dev as Developer
-      participant GH as GitHub
-      participant GA as GitHub Actions
-      participant ECR as AWS ECR
-      participant Atmos as Atmos CLI
-      participant TF as OpenTofu
-      participant ECS as AWS ECS
-
-      Dev->>GH: Open PR with 'deploy' label
-      GH->>GA: Trigger feature-branch workflow
-      GA->>ECR: Build & push Docker image
-      ECR-->>GA: Image pushed
-      GA->>Atmos: atmos terraform deploy app -s preview
-      Atmos->>TF: tofu apply
-      TF->>ECS: Create preview ECS service
-      ECS-->>GA: Preview URL
-      GA->>GH: Post preview URL to PR
-      Note over Dev,GH: PR closed
-      GH->>GA: Trigger preview-cleanup workflow
-      GA->>Atmos: atmos terraform destroy app -s preview
-      Atmos->>TF: tofu destroy
-      TF->>ECS: Delete preview ECS service
-  ```
-
-  #### Environment Promotion Flow
-
-  ```mermaid
-  graph LR
-      A[Push to main] --> B[Build Image]
-      B --> C[Deploy to Dev]
-      C --> D[Draft Release]
-      D --> E{Publish Release}
-      E --> F[Promote Image Tag]
-      F --> G[Deploy to Staging]
-      G --> H[Deploy to Production]
-
-      I[PR with 'deploy' label] --> J[Build Image]
-      J --> K[Deploy to Preview]
-      K --> L{PR Merged/Closed}
-      L --> M[Cleanup Preview]
-  ```
 
   ### Deployment
 
@@ -179,7 +105,27 @@ usage: |-
   - [Atmos](https://atmos.tools/install) installed
   - [OpenTofu](https://opentofu.org/docs/intro/install/) installed
   - AWS credentials configured
-  - ECS cluster and supporting infrastructure deployed
+
+  #### Infrastructure Dependencies
+
+  Before deploying, you must have the following infrastructure deployed:
+
+  1. **VPC** - With public/private subnets
+  2. **ECS Cluster** - With an Application Load Balancer (ALB) and DNS records configured
+  3. **EFS** (optional) - For persistent storage volumes
+
+  Then configure the dependencies in `terraform/stacks/`. You have two options:
+
+  **Option 1: Use `!terraform.state` (recommended)**
+
+  Update the dependency configurations in `terraform/stacks/deps/` to point to your infrastructure's remote state:
+  - `deps/vpc.yaml` - VPC component remote state location
+  - `deps/ecs.yaml` - ECS cluster component remote state location
+  - `deps/efs.yaml` - EFS component remote state location (if using volumes)
+
+  **Option 2: Hardcode values (brownfield)**
+
+  Replace the `!terraform.state` lookups in `terraform/stacks/defaults/app.yaml` with hardcoded values for your infrastructure. See [`terraform/stacks/defaults/README.md`](terraform/stacks/defaults/README.md) for required variables and a complete example.
 
   #### Local Deployment
 
@@ -221,23 +167,28 @@ usage: |-
 
   ```
   .
-  ├── main.go                    # Go application
-  ├── Dockerfile                 # Multi-stage container build
+  ├── app/                       # Go application
+  │   ├── main.go                # Web server
+  │   ├── Dockerfile             # Multi-stage container build
+  │   ├── public/                # Static HTML assets
+  │   ├── rootfs/                # Container filesystem overlay
+  │   └── test/                  # Local development (docker-compose)
   ├── atmos.yaml                 # Atmos configuration
-  ├── README.yaml                # README source (this file)
-  ├── public/                    # Static HTML assets
-  ├── rootfs/                    # Container filesystem overlay
+  ├── .atmos.d/                  # Atmos custom commands
   ├── terraform/
   │   ├── components/            # Terraform/OpenTofu modules
   │   │   └── ecs-task/          # ECS task definition component
   │   └── stacks/                # Environment configurations
+  │       ├── defaults/          # Shared component config
+  │       ├── deps/              # Dependency references
   │       ├── dev.yaml
   │       ├── staging.yaml
   │       ├── prod.yaml
   │       └── preview.yaml
   └── .github/
       ├── workflows/             # CI/CD pipelines
-      └── README.md.gotmpl       # README template
+      ├── README.yaml            # README source
+      └── README.md              # Generated README
   ```
 
   ### Building Documentation
