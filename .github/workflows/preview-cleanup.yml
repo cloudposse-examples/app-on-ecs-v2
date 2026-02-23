@@ -12,6 +12,9 @@ permissions:
   id-token: write
   contents: read
 
+env:
+  ATMOS_VERSION: ">= 1.167.0"
+
 jobs:      
   cleanup:
     runs-on: ["ubuntu-latest"]
@@ -21,6 +24,7 @@ jobs:
         uses: cloudposse/github-action-setup-atmos@v2
         with:
           install-wrapper: false
+          atmos_version: ${{ env.ATMOS_VERSION }}
 
       - name: Checkout
         uses: actions/checkout@v4
