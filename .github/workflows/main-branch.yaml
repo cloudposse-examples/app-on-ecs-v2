@@ -95,7 +95,7 @@ jobs:
       - name: Create/Update Draft release
         uses: release-drafter/release-drafter@v6
         with:
-          publish: true
+          publish: false
           prerelease: false
           config-name: configs/draft-release.yml
           commitish: ${{ github.sha }}
