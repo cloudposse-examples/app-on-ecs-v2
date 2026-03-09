@@ -88,5 +88,3 @@ jobs:
           ATMOS_CLI_CONFIG_PATH: .github
         run: |
           atmos terraform apply app -s preview -- -auto-approve
-          URL=$(atmos terraform output app -s preview --skip-init -- -raw url)
-          echo "url=$URL" >> $GITHUB_OUTPUT
