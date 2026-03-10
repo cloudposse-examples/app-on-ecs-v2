@@ -87,4 +87,4 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           ATMOS_CLI_CONFIG_PATH: .github
         run: |
-          atmos terraform apply app -s preview -- -auto-approve
+          atmos terraform deploy app -s preview
