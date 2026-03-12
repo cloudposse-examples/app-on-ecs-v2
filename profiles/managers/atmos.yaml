@@ -1,47 +1,44 @@
 auth:
+  realm: 6e3fd8f197fba22b
   logs:
     level: Debug
   
   providers:
-    cplive-sso:
+    sso:
       kind: aws/iam-identity-center
       region: us-east-2
-      start_url: https://cplive.awsapps.com/start/
-    
+      start_url: https://cplive.awsapps.com/start
+
   identities:      
-    core-identity/managers-team-access:
+    plat-dev/terraform:
       kind: aws/permission-set
       via:
-        provider: cplive-sso
+        provider: sso
       principal:
-        name: "IdentityManagersTeamAccess"
+        name: TerraformApplyAccess-Plat
         account:
-          name: "core-identity"
-      
-    plat-dev/terraform:
-      kind: aws/assume-role
-      via:
-        identity: core-identity/managers-team-access
-      principal:
-        assume_role: arn:aws:iam::068007702576:role/cplive-plat-gbl-dev-admin
-
+          name: plat-dev
     plat-prod/terraform:
-      kind: aws/assume-role
+      kind: aws/permission-set
       via:
-        identity: core-identity/managers-team-access
+        provider: sso
       principal:
-        assume_role: arn:aws:iam::557075604627:role/cplive-plat-gbl-prod-admin
-
+        name: TerraformApplyAccess-Plat
+        account:
+          name: plat-prod
     plat-staging/terraform:
-      kind: aws/assume-role
+      kind: aws/permission-set
       via:
-        identity: core-identity/managers-team-access
+        provider: sso
       principal:
-        assume_role: arn:aws:iam::675539733138:role/cplive-plat-gbl-staging-admin
-
+        name: TerraformApplyAccess-Plat
+        account:
+          name: plat-staging
     plat-sandbox/terraform:
-      kind: aws/assume-role
+      kind: aws/permission-set
       via:
-        identity: core-identity/managers-team-access
+        provider: sso
       principal:
-        assume_role: arn:aws:iam::539916835077:role/cplive-plat-gbl-sandbox-admin
+        name: TerraformApplyAccess-Plat
+        account:
+          name: plat-sandbox
