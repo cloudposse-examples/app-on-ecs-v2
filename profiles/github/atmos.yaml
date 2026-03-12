@@ -1,0 +1,15 @@
+auth:
+  providers:
+    github-oidc:
+      kind: github/oidc
+      region: us-east-2
+      spec:
+        audience: sts.amazonaws.com
+
+  identities:      
+    plat-dev/terraform:
+      kind: aws/assume-role
+      via:
+        provider: github-oidc
+      principal:
+        assume_role: arn:aws:iam::068007702576:role/cplive-plat-gbl-dev-app-on-ecs-v2

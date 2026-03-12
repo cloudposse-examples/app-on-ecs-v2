@@ -10,7 +10,7 @@ vars:
 terraform:
   auth:
     identities:
-      plat-dev/admin:
+      plat-dev/terraform:
         default: true
   
 components:

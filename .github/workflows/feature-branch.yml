@@ -86,7 +86,7 @@ jobs:
         env:
           APP_IMAGE: "${{ needs.build.outputs.image }}:${{ needs.build.outputs.tag }}"
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          ATMOS_CLI_CONFIG_PATH: .github
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ATMOS_PROFILE: github
         run: |
           atmos terraform deploy app -s preview
