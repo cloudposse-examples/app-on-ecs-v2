@@ -79,11 +79,9 @@ jobs:
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ATMOS_PROFILE: github
         run: |
           atmos toolchain install
           atmos toolchain env --format github
-
 
       - name: Deploy ECS Service
         shell: bash
