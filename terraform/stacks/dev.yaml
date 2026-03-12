@@ -5,6 +5,7 @@ import:
 
 vars:
   stage: dev
+  deps_stage: dev
   
 terraform:
   auth:

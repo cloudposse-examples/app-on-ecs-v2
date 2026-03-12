@@ -4,7 +4,7 @@ components:
       metadata:
         component: ecs
         type: abstract
-        terraform_workspace: '{{ .vars.tenant }}-{{ .vars.environment }}-{{ .vars.stage }}-{{ .atmos_component | regexp.ReplaceLiteral "\\W" "-" }}'
+        terraform_workspace: '{{ .vars.tenant }}-{{ .vars.environment }}-{{ .vars.deps_stage }}-{{ .atmos_component | regexp.ReplaceLiteral "\\W" "-" }}'
       backend_type: s3
       backend:
         s3:

@@ -254,3 +254,13 @@ variable "base_domains" {
   })
   description = "The base domain to use for the service"
 }
+
+variable "github_repo_name" {
+  type = string
+  description = "The name of the GitHub repository"
+}
+
+variable "deps_stage" {
+  type = string
+  description = "The stage of the dependencies"
+}
