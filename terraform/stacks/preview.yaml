@@ -18,6 +18,10 @@ components:
       metadata:
         terraform_workspace: "{{ .vars.tenant }}-{{ .vars.environment }}-dev"
 
+    ecs/cluster:
+      metadata:
+        terraform_workspace: '{{ .vars.tenant }}-{{ .vars.environment }}-dev-{{ .atmos_component | regexp.ReplaceLiteral "\\W" "-" }}'
+
     app:
       metadata:
         # Override Terraform workspace
