@@ -11,6 +11,7 @@ concurrency:
 permissions:
   id-token: write
   contents: read
+  checks: write
 
 jobs:      
   cleanup:
@@ -26,16 +27,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: opentofu/setup-opentofu@v1
-        with:
-          tofu_wrapper: false
-          tofu_version_file: .opentofu-version          
+      - name: Install Toolchain
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          atmos toolchain install
+          atmos toolchain env --format github
 
       - name: Deploy ECS Service
         shell: bash
         env:
-          APP_IMAGE: "${{ needs.build.outputs.image }}:${{ needs.build.outputs.tag }}"
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          ATMOS_CLI_CONFIG_PATH: .github
+          ATMOS_PROFILE: github
         run: |
           atmos terraform destroy app -s preview -auto-approve

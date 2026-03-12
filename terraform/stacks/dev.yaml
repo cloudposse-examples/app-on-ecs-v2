@@ -6,12 +6,11 @@ import:
 vars:
   stage: dev
   deps_stage: dev
-  github_repo_name: app-on-ecs-v2
-
+  
 terraform:
   auth:
     identities:
-      plat-dev/admin:
+      plat-dev/terraform:
         default: true
   
 components:
@@ -19,4 +18,4 @@ components:
     app:
       metadata:
         # Override Terraform workspace
-        terraform_workspace: "{{ .vars.github_repo_name }}-{{ .atmos_stack }}-{{ .atmos_component }}"
+        terraform_workspace: "app-on-ecs-v2-{{ .atmos_stack }}-{{ .atmos_component }}"

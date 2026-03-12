@@ -38,3 +38,7 @@ terraform:
       acl: bucket-owner-full-control
       region: us-east-2
 
+  dependencies:
+    tools:
+      # Use a specific terraform version from toolchain
+      opentofu: "1.6.0"

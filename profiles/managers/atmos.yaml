@@ -1,0 +1,44 @@
+auth:
+  realm: 6e3fd8f197fba22b
+  logs:
+    level: Debug
+  
+  providers:
+    sso:
+      kind: aws/iam-identity-center
+      region: us-east-2
+      start_url: https://cplive.awsapps.com/start
+
+  identities:      
+    plat-dev/terraform:
+      kind: aws/permission-set
+      via:
+        provider: sso
+      principal:
+        name: TerraformApplyAccess-Plat
+        account:
+          name: plat-dev
+    plat-prod/terraform:
+      kind: aws/permission-set
+      via:
+        provider: sso
+      principal:
+        name: TerraformApplyAccess-Plat
+        account:
+          name: plat-prod
+    plat-staging/terraform:
+      kind: aws/permission-set
+      via:
+        provider: sso
+      principal:
+        name: TerraformApplyAccess-Plat
+        account:
+          name: plat-staging
+    plat-sandbox/terraform:
+      kind: aws/permission-set
+      via:
+        provider: sso
+      principal:
+        name: TerraformApplyAccess-Plat
+        account:
+          name: plat-sandbox

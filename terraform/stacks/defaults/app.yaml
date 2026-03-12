@@ -21,10 +21,6 @@ components:
               retries: 3
               startPeriod: 0
               timeout: 5
-            mountPoints:
-              - sourceVolume: test
-                containerPath: /test
-                readOnly: false
             logConfiguration:
                 logDriver: "awslogs"
                 options:
@@ -32,14 +28,4 @@ components:
                     awslogs-group: "app"
                     awslogs-region: "us-east-2"
                     awslogs-stream-prefix: "app"
-          nginx: !include ../../components/ecs-task/sidecars/nginx.json
-        task:
-          volumes:
-            test:
-              efs_volume_configuration:
-                file_system_id: !terraform.state efs .efs_id
-                root_directory: /
-                transit_encryption: true
-                authorization_config: 
-                  iam: true
 

@@ -27,6 +27,8 @@ COPY public/ /app/public/
 
 COPY rootfs/ /
 
+
+
 # Install the app
 COPY --from=builder /src/example-app /app/
 
