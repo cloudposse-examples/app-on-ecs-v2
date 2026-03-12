@@ -28,4 +28,11 @@ components:
                     awslogs-group: "app"
                     awslogs-region: "us-east-2"
                     awslogs-stream-prefix: "app"
+        url_path: /dashboard
+        autoscaling:
+          rule:
+            high:
+              threshold: 30
+            low:
+              threshold: 10
 

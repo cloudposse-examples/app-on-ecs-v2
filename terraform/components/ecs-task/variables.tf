@@ -3,6 +3,12 @@ variable "region" {
   description = "AWS Region"
 }
 
+variable "url_path" {
+  type        = string
+  description = "The path to append to the service URL"
+  default     = "/"
+}
+
 # https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html
 variable "containers" {
   type = map(object({
