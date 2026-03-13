@@ -32,8 +32,8 @@ func main() {
 	})
 
 	// Simulate failure
-	boom, _ := os.ReadFile("public/shutdown.html")
 	m.HandleFunc("/shutdown", func(w http.ResponseWriter, r *http.Request) {
+		boom, _ := os.ReadFile("public/shutdown.html")
 		w.Write(boom)
 		log.Printf("Received shutdown request\n")
 		go func() {
@@ -44,15 +44,15 @@ func main() {
 	})
 
 	// Dashboard
-	dashboard, _ := os.ReadFile("public/dashboard.html")
 	m.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {
+		dashboard, _ := os.ReadFile("public/dashboard.html")
 		w.Write(dashboard)
 		log.Printf("GET %s\n", r.URL.Path)
 	})
 
 	// Default
-	index, _ := os.ReadFile("public/index.html")
 	m.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		index, _ := os.ReadFile("public/index.html")
 		count += 1
 		fmt.Fprintf(w, string(index), c, count)
 		//log.Printf("GET %s\n", r.URL.Path)
