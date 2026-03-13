@@ -65,6 +65,7 @@ module "alb_ingress" {
   protocol                         = "HTTP"
   port                             = 80
 
+  deregistration_delay       = 5
   stickiness_enabled         = false
   stickiness_type            = "lb_cookie"
   stickiness_cookie_duration = 86400
@@ -139,7 +140,7 @@ resource "aws_ecs_service" "default" {
     target_group_arn = module.alb_ingress.target_group_arn
   }
   
-  # health_check_grace_period_seconds  = 10
+  health_check_grace_period_seconds  = 10
 
   tags = module.this.tags
 
