@@ -17,10 +17,10 @@ components:
               - containerPort: 8080
             healthCheck:
               command: ["CMD-SHELL", "curl -f http://localhost:8080/healthz || exit 1"]
-              interval: 30
-              retries: 3
-              startPeriod: 0
-              timeout: 5
+              interval: 5
+              retries: 2
+              startPeriod: 5
+              timeout: 3
             logConfiguration:
                 logDriver: "awslogs"
                 options:
@@ -30,9 +30,15 @@ components:
                     awslogs-stream-prefix: "app"
         url_path: /dashboard
         autoscaling:
+          min_capacity: 2
+          max_capacity: 4
+          scale_up_cooldown: 30
+          scale_down_cooldown: 60
           rule:
             high:
               threshold: 30
+              period: 60
             low:
               threshold: 10
+              period: 60
 
