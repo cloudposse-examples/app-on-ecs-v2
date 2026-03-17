@@ -13,6 +13,9 @@ permissions:
   contents: read
   statuses: write
 
+env:
+  ATMOS_PROFILE: github 
+
 jobs:
   test:
     needs: [ build ]
@@ -47,13 +50,6 @@ jobs:
         run: |
           atmos auth env --identity plat-dev/terraform --format dotenv | tr -d "'" >> $GITHUB_ENV
           atmos auth login --identity plat-dev/terraform
-
-      - name: ECR password
-        shell: bash
-        run: |
-          atmos auth exec --identity plat-dev/terraform -- aws configure export-credentials --format env-no-export >> $GITHUB_ENV
-        env:
-          ATMOS_PROFILE: github
 
       - name: Build
         id: build
@@ -92,6 +88,5 @@ jobs:
           APP_IMAGE: "${{ needs.build.outputs.image }}:${{ needs.build.outputs.tag }}"
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ATMOS_PROFILE: github
         run: |
           atmos terraform deploy app -s preview
