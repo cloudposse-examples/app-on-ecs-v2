@@ -14,6 +14,7 @@ permissions:
 
 jobs:
   test:
+    needs: [ build ]
     runs-on: ["ubuntu-latest"]
     steps:
       - name: Checkout
@@ -29,7 +30,6 @@ jobs:
         run: go test -v ./...
 
   build:
-    needs: [ test ]
     runs-on: ["ubuntu-latest"]
     steps:
       - name: Install Atmos
@@ -51,9 +51,9 @@ jobs:
       - name: Mask ECR credentials
         shell: bash
         run: |
-          echo "::mask::${{ env.AWS_SECRET_ACCESS_KEY }}"
-          echo "::mask::${{ env.AWS_ACCESS_KEY_ID }}"
-          echo "::mask::${{ env.AWS_SESSION_TOKEN }}"
+          echo "::add-mask::${{ env.AWS_SECRET_ACCESS_KEY }}"
+          echo "::add-mask::${{ env.AWS_ACCESS_KEY_ID }}"
+          echo "::add-mask::${{ env.AWS_SESSION_TOKEN }}"
 
       - name: Login to ECR
         uses: docker/login-action@v3
@@ -79,7 +79,7 @@ jobs:
       tag: ${{ steps.build.outputs.tag }}
       
   deploy:
-    needs: [ build ]
+    needs: [ test, build ]
     runs-on: ["ubuntu-latest"]
     environment:
       name: dev
