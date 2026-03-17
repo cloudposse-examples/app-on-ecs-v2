@@ -19,13 +19,13 @@ jobs:
     if: ${{ github.event.pull_request.state == 'closed' || !contains(github.event.pull_request.labels.*.name, 'deploy') }}
     steps:
       - name: Install Atmos
-        uses: cloudposse/github-action-setup-atmos@v2
+        uses: cloudposse/github-action-setup-atmos@v3
         with:
           install-wrapper: false
           atmos-version: ${{ vars.ATMOS_VERSION }}
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Deploy ECS Service
         shell: bash

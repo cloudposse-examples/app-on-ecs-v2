@@ -19,10 +19,10 @@ jobs:
     runs-on: ["ubuntu-latest"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: app/go.mod
 
@@ -34,13 +34,13 @@ jobs:
     runs-on: ["ubuntu-latest"]
     steps:
       - name: Install Atmos
-        uses: cloudposse/github-action-setup-atmos@v2
+        uses: cloudposse/github-action-setup-atmos@v3
         with:
           install-wrapper: false
           atmos-version: ${{ vars.ATMOS_VERSION }}
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: AWS Auth
         shell: bash
@@ -77,13 +77,13 @@ jobs:
       url: ${{ steps.deploy.outputs.output_url }}
     steps:
       - name: Install Atmos
-        uses: cloudposse/github-action-setup-atmos@v2
+        uses: cloudposse/github-action-setup-atmos@v3
         with:
           install-wrapper: false
           atmos-version: ${{ vars.ATMOS_VERSION }}
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Deploy ECS Service
         shell: bash
