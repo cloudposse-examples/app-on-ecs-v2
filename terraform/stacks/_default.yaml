@@ -32,7 +32,6 @@ terraform:
   backend:
     s3:
       bucket: cplive-plat-ue2-dev-tfstate-apps
-      use_lockfile: true
       encrypt: true
       key: terraform.tfstate
       acl: bucket-owner-full-control
