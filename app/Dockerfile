@@ -10,10 +10,6 @@ RUN cd /src && \
 # Build the final image
 FROM alpine:3.22 AS final
 
-# Install the cloudposse alpine repository
-ADD https://apk.cloudposse.com/ops@cloudposse.com.rsa.pub /etc/apk/keys/
-RUN echo "@cloudposse https://apk.cloudposse.com/3.22/vendor" >> /etc/apk/repositories
-
 RUN apk add --no-cache bash curl && \
     addgroup -S app && adduser -S app -G app
 
