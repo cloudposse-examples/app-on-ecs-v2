@@ -12,4 +12,4 @@ then
   exit 0;
 fi
 
-$@
+exec "$@"

@@ -33,7 +33,7 @@ resource "aws_security_group_rule" "allow_all_egress" {
 }
 
 resource "aws_security_group_rule" "allow_alb_ingress" {
-  description              = "Allow all outbound traffic to any IPv4 address"
+  description              = "Allow all inbound traffic from ALB"
   type                     = "ingress"
   from_port                = 0
   to_port                  = 0

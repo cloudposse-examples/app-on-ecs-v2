@@ -1,20 +1,17 @@
 FROM golang:1.26-alpine AS builder
 
 # Copy source into builder
-ADD . /src
+COPY . /src
 
 # Build the app
 RUN cd /src && \
-    go build -o example-app
+    go build -ldflags="-s -w" -trimpath -o example-app
 
 # Build the final image
 FROM alpine:3.22 AS final
 
-# Install the cloudposse alpine repository
-ADD https://apk.cloudposse.com/ops@cloudposse.com.rsa.pub /etc/apk/keys/
-RUN echo "@cloudposse https://apk.cloudposse.com/3.22/vendor" >> /etc/apk/repositories
-
-RUN apk add --no-cache bash curl
+RUN apk add --no-cache bash curl && \
+    addgroup -S app && adduser -S app -G app
 
 # Expose port of the app
 EXPOSE 8080
@@ -22,7 +19,7 @@ EXPOSE 8080
 # Set the runtime working directory
 WORKDIR /app
 
-# Copy the helmfile deployment configuration
+# Copy public assets
 COPY public/ /app/public/
 
 COPY rootfs/ /
@@ -31,6 +28,10 @@ COPY rootfs/ /
 
 # Install the app
 COPY --from=builder /src/example-app /app/
+
+RUN chown -R app:app /app
+
+USER app
 
 # Define the entrypoint
 ENTRYPOINT ["/entrypoint.sh"]
