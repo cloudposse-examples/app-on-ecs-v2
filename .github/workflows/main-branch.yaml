@@ -27,6 +27,7 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version-file: app/go.mod
+          cache-dependency-path: app/go.sum
 
       - name: Run tests
         working-directory: app
