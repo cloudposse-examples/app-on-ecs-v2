@@ -40,4 +40,4 @@ terraform:
   dependencies:
     tools:
       # Use a specific terraform version from toolchain
-      opentofu: "1.6.0"
+      opentofu: "1.11.5"

@@ -41,6 +41,19 @@ data "aws_iam_policy_document" "ecs_exec" {
       "logs:PutLogEvents"
     ]
   }
+
+  statement {
+    effect    = "Allow"
+    resources = ["*"]
+
+    actions = [
+      "ecr-public:GetAuthorizationToken",
+      "ecr-public:BatchCheckLayerAvailability",
+      "ecr-public:GetDownloadUrlForLayer",
+      "ecr-public:BatchGetImage",
+      "sts:GetServiceBearerToken",
+    ]
+  }
 }
 
 resource "aws_iam_role_policy" "ecs_exec" {

@@ -6,10 +6,21 @@ auth:
       spec:
         audience: sts.amazonaws.com
 
-  identities:      
+  identities:
     plat-dev/terraform:
       kind: aws/assume-role
       via:
         provider: github-oidc
       principal:
         assume_role: arn:aws:iam::068007702576:role/cplive-plat-gbl-dev-app-on-ecs-v2
+
+  integrations:
+    dev/ecr:
+      kind: aws/ecr
+      via:
+        identity: plat-dev/terraform
+      spec:
+        auto_provision: true
+        registry:
+          account_id: "068007702576"
+          region: us-east-2
