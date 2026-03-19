@@ -24,7 +24,7 @@ terraform {
     }
     utils = {
       source  = "cloudposse/utils"
-      version = ">= 1.31.0"
+      version = ">= 2.3.0"
     }
   }
 }
