@@ -34,7 +34,7 @@ jobs:
           atmos auth env --identity plat-dev/terraform --format dotenv | tr -d "'" >> $GITHUB_ENV
           atmos auth login --identity plat-dev/terraform
 
-      - uses: cloudposse/github-action-docker-promote@v0.5.0
+      - uses: cloudposse/github-action-docker-promote@v1
         id: promote
         with:
           organization: cloudposse-examples
