@@ -93,7 +93,7 @@ jobs:
     needs: [ deploy ]
     steps:
       - name: Create/Update Draft release
-        uses: release-drafter/release-drafter@v6
+        uses: release-drafter/release-drafter@v7
         with:
           publish: false
           prerelease: false
