@@ -4,19 +4,19 @@
 # Run `atmos docs generate readme` to rebuild the `README.md`
 #
 
-name: app-on-ecs-v2
+name: atmos-native-ci
 
 license: APACHE2
 
-github_repo: cloudposse-examples/app-on-ecs-v2
+github_repo: cloudposse-examples/atmos-native-ci
 
 badges:
   - name: Latest Release
-    image: https://img.shields.io/github/release/cloudposse-examples/app-on-ecs-v2.svg?style=for-the-badge
-    url: https://github.com/cloudposse-examples/app-on-ecs-v2/releases/latest
+    image: https://img.shields.io/github/release/cloudposse-examples/atmos-native-ci.svg?style=for-the-badge
+    url: https://github.com/cloudposse-examples/atmos-native-ci/releases/latest
   - name: Last Updated
-    image: https://img.shields.io/github/last-commit/cloudposse-examples/app-on-ecs-v2/main?style=for-the-badge
-    url: https://github.com/cloudposse-examples/app-on-ecs-v2/commits/main/
+    image: https://img.shields.io/github/last-commit/cloudposse-examples/atmos-native-ci/main?style=for-the-badge
+    url: https://github.com/cloudposse-examples/atmos-native-ci/commits/main/
   - name: Slack Community
     image: https://slack.cloudposse.com/for-the-badge.svg
     url: https://slack.cloudposse.com

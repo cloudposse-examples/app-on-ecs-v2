@@ -56,7 +56,7 @@ jobs:
         uses: cloudposse/github-action-docker-build-push@v3
         with:
           organization: cloudposse-examples
-          repository: app-on-ecs-v2
+          repository: atmos-native-ci
           registry: ${{ vars.ECR_REGISTRY }}
           workdir: app
 

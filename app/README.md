@@ -32,10 +32,10 @@ atmos down  # Stop the app
 
 ```bash
 # Build Docker image
-docker build -t app-on-ecs-v2 app/
+docker build -t atmos-native-ci app/
 
 # Run locally
-docker run -p 8080:8080 -e COLOR=blue app-on-ecs-v2
+docker run -p 8080:8080 -e COLOR=blue atmos-native-ci
 ```
 
 ## Files

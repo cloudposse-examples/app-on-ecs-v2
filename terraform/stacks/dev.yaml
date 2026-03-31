@@ -18,4 +18,4 @@ components:
     app:
       metadata:
         # Override Terraform workspace
-        terraform_workspace: "app-on-ecs-v2-{{ .atmos_stack }}-{{ .atmos_component }}"
+        terraform_workspace: "atmos-native-ci-{{ .atmos_stack }}-{{ .atmos_component }}"

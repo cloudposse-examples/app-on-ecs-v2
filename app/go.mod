@@ -1,3 +1,3 @@
-module github.com/cloudposse-examples/app-on-ecs-v2
+module github.com/cloudposse-examples/atmos-native-ci
 
 go 1.26

@@ -38,7 +38,7 @@ jobs:
         id: promote
         with:
           organization: cloudposse-examples
-          repository: app-on-ecs-v2
+          repository: atmos-native-ci
           registry: ${{ vars.ECR_REGISTRY }}
           from: sha-${{ github.sha }}
           to: ${{ github.event.release.tag_name }}

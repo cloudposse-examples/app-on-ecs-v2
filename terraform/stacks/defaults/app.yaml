@@ -11,7 +11,7 @@ components:
         base_domains: !terraform.state ecs/cluster .records
         containers:
           app:
-            image: !env APP_IMAGE 068007702576.dkr.ecr.us-east-2.amazonaws.com/cloudposse-examples/app-on-ecs-v2:sha-2ee4206
+            image: !env APP_IMAGE 068007702576.dkr.ecr.us-east-2.amazonaws.com/cloudposse-examples/atmos-native-ci:sha-2ee4206
             memory: 256
             portMappings:
               - containerPort: 8080
