@@ -13,22 +13,20 @@ permissions:
   contents: read
   checks: write
 
-jobs:      
+jobs:
   cleanup:
     runs-on: ["ubuntu-latest"]
+    container:
+      image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
     if: ${{ github.event.pull_request.state == 'closed' || !contains(github.event.pull_request.labels.*.name, 'deploy') }}
+    defaults:
+      run:
+        shell: bash
     steps:
-      - name: Install Atmos
-        uses: cloudposse/github-action-setup-atmos@v3
-        with:
-          install-wrapper: false
-          atmos-version: ${{ vars.ATMOS_VERSION }}
-
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Deploy ECS Service
-        shell: bash
+      - name: Destroy ECS Service
         env:
           ATMOS_PROFILE: github
         run: |

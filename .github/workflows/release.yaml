@@ -51,24 +51,23 @@ jobs:
   deploy-staging:
     needs: [ promote ]
     runs-on: ["ubuntu-latest"]
+    container:
+      image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
     name: deploy / staging
     environment:
       name: staging
       url: ${{ steps.deploy.outputs.url }}
+    defaults:
+      run:
+        shell: bash
     steps:
-      - name: Install Atmos
-        uses: cloudposse/github-action-setup-atmos@v3
-        with:
-          install-wrapper: false
-          atmos-version: ${{ vars.ATMOS_VERSION }}
-
       - name: Checkout
         uses: actions/checkout@v6
 
       - name: Deploy ECS Service
-        shell: bash
         id: deploy
         env:
+          ATMOS_PROFILE: github
           APP_IMAGE: "${{ needs.promote.outputs.image }}:${{ needs.promote.outputs.tag }}"
         run: |
           atmos terraform deploy app -s staging
@@ -76,24 +75,23 @@ jobs:
   deploy-production:
     needs: [ deploy-staging, promote ]
     runs-on: ["ubuntu-latest"]
+    container:
+      image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
     name: deploy / production
     environment:
       name: prod
       url: ${{ steps.deploy.outputs.url }}
+    defaults:
+      run:
+        shell: bash
     steps:
-      - name: Install Atmos
-        uses: cloudposse/github-action-setup-atmos@v3
-        with:
-          install-wrapper: false
-          atmos-version: ${{ vars.ATMOS_VERSION }}
-
       - name: Checkout
         uses: actions/checkout@v6
 
       - name: Deploy ECS Service
-        shell: bash
         id: deploy
         env:
+          ATMOS_PROFILE: github
           APP_IMAGE: "${{ needs.promote.outputs.image }}:${{ needs.promote.outputs.tag }}"
         run: |
           atmos terraform deploy app -s prod
