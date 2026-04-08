@@ -68,24 +68,23 @@ jobs:
   deploy:
     needs: [ test, build ]
     runs-on: ["ubuntu-latest"]
+    container:
+      image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
     if: ${{ contains(github.event.pull_request.labels.*.name, 'deploy') }}
     environment:
       name: preview
       url: ${{ steps.deploy.outputs.output_url }}
+    defaults:
+      run:
+        shell: bash
     steps:
-      - name: Install Atmos
-        uses: cloudposse/github-action-setup-atmos@v3
-        with:
-          install-wrapper: false
-          atmos-version: ${{ vars.ATMOS_VERSION }}
-
       - name: Checkout
         uses: actions/checkout@v6
 
       - name: Deploy ECS Service
-        shell: bash
         id: deploy
         env:
+          ATMOS_PROFILE: github
           APP_IMAGE: "${{ needs.build.outputs.image }}:${{ needs.build.outputs.tag }}"
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
