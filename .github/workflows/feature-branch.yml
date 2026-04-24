@@ -50,7 +50,7 @@ jobs:
 
       - name: AWS Auth
         run: |
-          atmos auth env --identity plat-dev/terraform --format dotenv | tr -d "'" >> $GITHUB_ENV
+          atmos auth env --identity plat-dev/terraform --format=github
           atmos auth login --identity plat-dev/terraform
 
       - name: Build
