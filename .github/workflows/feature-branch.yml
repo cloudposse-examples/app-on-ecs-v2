@@ -26,11 +26,6 @@ jobs:
     needs: [ build ]
     runs-on: ["ubuntu-latest"]
     steps:
-      - name: Set up Atmos
-        uses: cloudposse/github-action-setup-atmos@v2
-        with:
-          atmos-version: ${{ vars.ATMOS_VERSION }}
-
       - name: Checkout
         uses: actions/checkout@v6
 
@@ -82,18 +77,15 @@ jobs:
       image: ${{ steps.build.outputs.image }}
       tag: ${{ steps.build.outputs.tag }}
 
-  terraform-e2e:
+  e2e:
     runs-on: ["ubuntu-latest"]
+    container:
+      image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
     name: terraform / emulator e2e
     defaults:
       run:
         shell: bash
     steps:
-      - name: Set up Atmos
-        uses: cloudposse/github-action-setup-atmos@v2
-        with:
-          atmos-version: ${{ vars.ATMOS_VERSION }}
-
       - name: Checkout
         uses: actions/checkout@v6
 
@@ -106,7 +98,7 @@ jobs:
         run: atmos terraform test app -s fixtures --ci
 
   deploy-preview:
-    needs: [ test, build, terraform-e2e ]
+    needs: [ test, build, e2e ]
     runs-on: ["ubuntu-latest"]
     container:
       image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
@@ -138,7 +130,7 @@ jobs:
           atmos terraform deploy app -s preview
 
   deploy-dev:
-    needs: [ test, build, terraform-e2e ]
+    needs: [ test, build, e2e ]
     runs-on: ["ubuntu-latest"]
     container:
       image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
