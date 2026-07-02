@@ -1,6 +1,6 @@
 # Example Application
 
-A simple Go web server designed to demonstrate container deployment strategies. Each request increments a counter, and the background color is configurable via environment variable - making it easy to visualize blue/green deployments, canary releases, and load balancing across multiple instances.
+A simple Go web server designed to demonstrate container deployment strategies and ECS runtime secret injection. Each request increments a counter, the background color is configurable via environment variable, and the app reports whether the demonstration `API_KEY` secret was configured without displaying the value.
 
 ## Endpoints
 
@@ -17,6 +17,7 @@ A simple Go web server designed to demonstrate container deployment strategies. 
 |----------|---------|-------------|
 | `COLOR` | `green` | Background color for the index page |
 | `LISTEN` | `:8080` | Address and port to listen on |
+| `API_KEY` | unset | Demonstration secret. The app only reports whether it is configured; it never displays the value. |
 
 ## Local Development
 

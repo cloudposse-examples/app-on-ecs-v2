@@ -11,14 +11,18 @@ import (
 )
 
 type app struct {
-	color   string
-	count   atomic.Int64
-	healthy atomic.Bool
-	server  *http.Server
+	color            string
+	secretConfigured bool
+	count            atomic.Int64
+	healthy          atomic.Bool
+	server           *http.Server
 }
 
-func newApp(color, addr string) *app {
-	a := &app{color: color}
+func newApp(color, addr string, secretConfigured bool) *app {
+	a := &app{
+		color:            color,
+		secretConfigured: secretConfigured,
+	}
 	a.healthy.Store(true)
 
 	mux := http.NewServeMux()
@@ -88,7 +92,11 @@ func (a *app) handleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	n := a.count.Add(1)
-	rendered := fmt.Sprintf(string(index), a.color, n)
+	secretStatus := "secret: missing"
+	if a.secretConfigured {
+		secretStatus = "secret: configured"
+	}
+	rendered := fmt.Sprintf(string(index), a.color, n, secretStatus)
 	w.Write([]byte(rendered))
 }
 
@@ -103,7 +111,7 @@ func main() {
 		addr = ":8080"
 	}
 
-	a := newApp(color, addr)
+	a := newApp(color, addr, os.Getenv("API_KEY") != "")
 
 	log.Printf("Server started\n")
 

@@ -4,6 +4,12 @@ components:
       metadata:
         component: ecs-task
         terraform_workspace: "atmos-native-ci-{{ .atmos_stack }}-{{ .atmos_component }}"
+      secrets:
+        vars:
+          API_KEY:
+            description: "Example application API key injected into ECS from SSM Parameter Store."
+            store: secrets/ssm
+            required: true
       hooks:
         fmt:
           events:
@@ -45,6 +51,9 @@ components:
             environment:
               - name: COLOR
                 value: blue
+            secrets:
+              - name: API_KEY
+                valueFrom: "/atmos/app-on-ecs-v2/secrets/{{ .atmos_stack }}/{{ .atmos_component }}/API_KEY"
             healthCheck:
               command: ["CMD-SHELL", "curl -f http://localhost:8080/healthz || exit 1"]
               interval: 5

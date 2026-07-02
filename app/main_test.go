@@ -17,7 +17,7 @@ func setupTestApp(t *testing.T) *app {
 	pubDir := filepath.Join(dir, "public")
 	os.MkdirAll(pubDir, 0o755)
 
-	os.WriteFile(filepath.Join(pubDir, "index.html"), []byte(`<body style="background-color: %s"><div class="count">%v</div></body>`), 0o644)
+	os.WriteFile(filepath.Join(pubDir, "index.html"), []byte(`<body style="background-color: %s"><div class="count">%v</div><div class="secret">%s</div></body>`), 0o644)
 	os.WriteFile(filepath.Join(pubDir, "dashboard.html"), []byte(`<html><body>dashboard</body></html>`), 0o644)
 	os.WriteFile(filepath.Join(pubDir, "shutdown.html"), []byte(`<html><body>shutting down</body></html>`), 0o644)
 
@@ -26,7 +26,7 @@ func setupTestApp(t *testing.T) *app {
 	os.Chdir(dir)
 	t.Cleanup(func() { os.Chdir(orig) })
 
-	return newApp("blue", ":0")
+	return newApp("blue", ":0", false)
 }
 
 func TestHealthz(t *testing.T) {
@@ -77,6 +77,9 @@ func TestIndexRendersColorAndCount(t *testing.T) {
 	if !strings.Contains(body, ">1<") {
 		t.Errorf("expected body to contain count '1', got %q", body)
 	}
+	if !strings.Contains(body, "secret: missing") {
+		t.Errorf("expected body to report missing secret, got %q", body)
+	}
 
 	// Second request increments count
 	req = httptest.NewRequest("GET", "/", nil)
@@ -86,6 +89,19 @@ func TestIndexRendersColorAndCount(t *testing.T) {
 	body = w.Body.String()
 	if !strings.Contains(body, ">2<") {
 		t.Errorf("expected body to contain count '2', got %q", body)
+	}
+}
+
+func TestIndexReportsConfiguredSecret(t *testing.T) {
+	a := setupTestApp(t)
+	a.secretConfigured = true
+
+	req := httptest.NewRequest("GET", "/", nil)
+	w := httptest.NewRecorder()
+	a.handleIndex(w, req)
+
+	if !strings.Contains(w.Body.String(), "secret: configured") {
+		t.Errorf("expected body to report configured secret, got %q", w.Body.String())
 	}
 }
 
