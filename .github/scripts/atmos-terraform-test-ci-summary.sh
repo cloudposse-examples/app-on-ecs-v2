@@ -3,7 +3,8 @@ set -eu
 
 apt-get update
 apt-get install -y --no-install-recommends docker-cli
-git config --global --add safe.directory "$GITHUB_WORKSPACE"
+workspace="${GITHUB_WORKSPACE:-$(pwd)}"
+git config --global --add safe.directory "$workspace"
 
 log_file="${RUNNER_TEMP:-/tmp}/atmos-terraform-test.log"
 

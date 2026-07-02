@@ -120,6 +120,7 @@ jobs:
             -e GITHUB_STEP_SUMMARY \
             -e GITHUB_TOKEN \
             -e RUNNER_TEMP \
+            -e GITHUB_WORKSPACE \
             -e GITHUB_WORKFLOW \
             ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }} \
             sh .github/scripts/atmos-terraform-test-ci-summary.sh
