@@ -79,7 +79,7 @@ jobs:
 
   e2e:
     runs-on: ["ubuntu-latest"]
-    name: e
+    name: e2e
     container:
       image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
     defaults:
@@ -93,7 +93,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          sh .github/scripts/atmos-terraform-test-ci-summary.sh
+          atmos terraform test app -s fixtures --ci
 
   deploy-preview:
     needs: [ test, build, e2e ]

@@ -391,30 +391,49 @@ The raw job log included the OpenTofu test result:
 Success! 1 passed, 0 failed, 0 skipped.
 ```
 
+The run used `ghcr.io/cloudposse/atmos:1.222.0`. Atmos PR
+`cloudposse/atmos#2663`, included in `v1.222.0`, says it added native-CI job
+step summaries for `terraform test`: pass/fail/skip badges and a per-run results
+table. The workflow passed `GITHUB_ACTIONS`, `GITHUB_STEP_SUMMARY`,
+`GITHUB_OUTPUT`, and mounted `$RUNNER_TEMP`, which is where GitHub normally
+places the step summary file.
+
 GitHub commit status for the merge commit only recorded
-`atmos/test/fixtures/app` with description `1 passed`. The GitHub check-run API
-had no check output text, no summary, no annotations, no artifacts, and no PR
+`atmos/test/fixtures/app` with description `1 passed`. The GitHub check/status
+API surface had no output body, no assertion table, no artifact, and no PR
 comment with the `.tftest.hcl` run name or assertion details.
 
 **Why this blocks dogfooding**
 
-Atmos documentation says `terraform test` native CI should write job summaries
-with per-run pass/fail/skip results and inline failing assertions. The current
-output proves CI is enabled, but a passing run still collapses to a count-only
-status page that does not show `applies_ecs_service_against_emulator` or the
+Atmos documentation and PR `#2663` say `terraform test` native CI should write a
+GitHub job step summary with per-run pass/fail/skip results and inline failing
+assertions. The current evidence proves CI mode and commit-status updates are
+enabled, but the visible status surface still collapses to a count-only
+description that does not show `applies_ecs_service_against_emulator` or the
 assertions that were exercised.
+
+This may not be the same surface that PR `#2663` implemented. Atmos writes
+`$GITHUB_STEP_SUMMARY` for the job summary, while the commit status/check API
+description is limited to short status text such as `1 passed`. If the GitHub
+job page did contain the rich step summary, this is not an Atmos summary bug;
+it is an expectation mismatch between job summaries and commit/check status
+output.
 
 **Current workaround**
 
-The workflow still runs Atmos native CI, but wraps the command in
-`.github/scripts/atmos-terraform-test-ci-summary.sh`. The wrapper captures the
-verbose Atmos/OpenTofu output, appends a small Terraform test section to
-`$GITHUB_STEP_SUMMARY`, lists the `.tftest.hcl` run names, and includes failure
-diagnostics when the command exits non-zero.
+Do not add a repository wrapper script for this. The desired workflow is to run
+Atmos native CI directly and let Atmos own the summary behavior.
 
 **Expected fix**
 
-Atmos should make `atmos terraform test --ci` publish the rich test summary
-directly: component, stack, `.tftest.hcl` file, run name, assertion status, and
-failure diagnostics. The native summary should be sufficient without a
-repository wrapper.
+First verify the actual GitHub job summary UI for run `28612339269`. If the rich
+summary is present there, the missing piece is documentation/expectation: Atmos
+should make clear that `terraform test --ci` rich output is a job summary, not a
+GitHub commit-status/check-run output body, artifact, or PR comment.
+
+If the rich job summary is absent, Atmos should make the failure diagnosable:
+when `ci.summary.enabled` is true and `GITHUB_ACTIONS=true`,
+`atmos terraform test --ci` should log or warn whether it detected
+`GITHUB_STEP_SUMMARY`, whether the path was writable, and whether the summary
+was rendered. The native summary should remain sufficient without a repository
+wrapper.
