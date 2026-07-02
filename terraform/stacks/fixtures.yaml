@@ -13,7 +13,7 @@ terraform:
   backend_type: local
   backend:
     local:
-      path: '../../../.context/tfstate/{{ .atmos_stack }}-{{ .atmos_component | regexp.ReplaceLiteral "\\W" "-" }}.tfstate'
+      path: '{{ env "PWD" }}/.context/tfstate/{{ .atmos_stack }}-{{ .atmos_component | regexp.ReplaceLiteral "\\W" "-" }}.tfstate'
   auth:
     identities:
       local-aws:
@@ -49,6 +49,7 @@ components:
               command: |
                 mkdir -p .context/tfstate
                 rm -f .context/tfstate/fixtures-*.tfstate*
+                rm -f .workdir/.context/tfstate/fixtures-*.tfstate*
                 rm -rf terraform/components/vpc/terraform.tfstate.d terraform/components/ecs/cluster/terraform.tfstate.d terraform/components/ecs-task/terraform.tfstate.d
             - type: emulator
               component: aws
@@ -62,39 +63,6 @@ components:
               command: terraform apply vpc -s fixtures -auto-approve
             - type: atmos
               command: terraform apply ecs/cluster -s fixtures -auto-approve
-            - type: shell
-              command: |
-                vpc_outputs="$(atmos terraform output vpc -s fixtures --format json)"
-                ecs_outputs="$(atmos terraform output ecs/cluster -s fixtures --format json)"
-
-                jq -n \
-                  --argjson vpc "$vpc_outputs" \
-                  --argjson ecs "$ecs_outputs" \
-                  '{
-                    ecs: {
-                      cluster_arn: $ecs.arn,
-                      cluster_name: $ecs.name
-                    },
-                    vpc: {
-                      availability_zones: $vpc.availability_zones,
-                      az_private_subnets_map: (
-                        $vpc.availability_zones as $azs |
-                        $vpc.private_subnet_ids as $ids |
-                        reduce range(0; ($azs | length)) as $i ({}; .[$azs[$i]] = [$ids[$i]])
-                      ),
-                      az_public_subnets_map: (
-                        $vpc.availability_zones as $azs |
-                        $vpc.public_subnet_ids as $ids |
-                        reduce range(0; ($azs | length)) as $i ({}; .[$azs[$i]] = [$ids[$i]])
-                      ),
-                      flow_log_destination: null,
-                      flow_log_id: [],
-                      private_subnet_ids: $vpc.private_subnet_ids,
-                      public_subnet_ids: $vpc.public_subnet_ids,
-                      vpc_cidr: $vpc.vpc_cidr,
-                      vpc_id: $vpc.vpc_id
-                    }
-                  }' > terraform/components/ecs-task/fixtures.auto.tfvars.json
         fixtures-down:
           events:
             - after.terraform.test
@@ -109,8 +77,6 @@ components:
             - type: emulator
               component: aws
               action: down
-            - type: shell
-              command: rm -f terraform/components/ecs-task/fixtures.auto.tfvars.json
       generate:
         "providers.tf": |
           provider "aws" {
@@ -138,3 +104,18 @@ components:
         base_domains:
           public: "*.local.test"
           private: "*.local.test"
+      test:
+        vars:
+          ecs:
+            cluster_arn: !terraform.output ecs/cluster fixtures arn
+            cluster_name: !terraform.output ecs/cluster fixtures name
+          vpc:
+            availability_zones: !terraform.output vpc fixtures availability_zones
+            az_private_subnets_map: !terraform.output vpc fixtures az_private_subnets_map
+            az_public_subnets_map: !terraform.output vpc fixtures az_public_subnets_map
+            flow_log_destination: null
+            flow_log_id: []
+            private_subnet_ids: !terraform.output vpc fixtures private_subnet_ids
+            public_subnet_ids: !terraform.output vpc fixtures public_subnet_ids
+            vpc_cidr: !terraform.output vpc fixtures vpc_cidr
+            vpc_id: !terraform.output vpc fixtures vpc_id

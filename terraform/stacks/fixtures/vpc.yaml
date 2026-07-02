@@ -84,6 +84,20 @@ components:
             description = "Availability zones used by the fixture VPC."
           }
 
+          output "az_private_subnets_map" {
+            value = {
+              for i, az in local.availability_zones : az => [aws_subnet.private[i].id]
+            }
+            description = "Map of availability zones to private subnet IDs."
+          }
+
+          output "az_public_subnets_map" {
+            value = {
+              for i, az in local.availability_zones : az => [aws_subnet.public[i].id]
+            }
+            description = "Map of availability zones to public subnet IDs."
+          }
+
           output "vpc_cidr" {
             value       = aws_vpc.default.cidr_block
             description = "VPC CIDR block."

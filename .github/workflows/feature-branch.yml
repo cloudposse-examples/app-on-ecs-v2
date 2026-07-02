@@ -32,7 +32,7 @@ jobs:
           atmos-version: ${{ vars.ATMOS_VERSION }}
 
       - name: Checkout
-        run: atmos git clone
+        uses: actions/checkout@v6
 
       - name: Set up Go
         uses: actions/setup-go@v6
@@ -56,7 +56,7 @@ jobs:
         run: apt-get update && apt-get install -y docker.io bc
 
       - name: Checkout
-        run: atmos git clone
+        uses: actions/checkout@v6
 
       - name: Atmos Cache
         uses: cloudposse/atmos/actions/cache@v1
@@ -93,7 +93,7 @@ jobs:
           atmos-version: ${{ vars.ATMOS_VERSION }}
 
       - name: Checkout
-        run: atmos git clone
+        uses: actions/checkout@v6
 
       - name: Atmos Cache
         uses: cloudposse/atmos/actions/cache@v1
@@ -120,7 +120,7 @@ jobs:
         shell: bash
     steps:
       - name: Checkout
-        run: atmos git clone
+        uses: actions/checkout@v6
 
       - name: Atmos Cache
         uses: cloudposse/atmos/actions/cache@v1
@@ -150,7 +150,7 @@ jobs:
         shell: bash
     steps:
       - name: Checkout
-        run: atmos git clone
+        uses: actions/checkout@v6
 
       - name: Atmos Cache
         uses: cloudposse/atmos/actions/cache@v1
