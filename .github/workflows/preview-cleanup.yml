@@ -18,7 +18,7 @@ jobs:
   cleanup:
     runs-on: ["ubuntu-latest"]
     container:
-      image: ghcr.io/cloudposse/atmos:1.222.0
+      image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
     if: ${{ github.event.pull_request.state == 'closed' || !contains(github.event.pull_request.labels.*.name, 'deploy') }}
     defaults:
       run:

@@ -193,9 +193,9 @@ or skip the very features this branch is meant to validate.
 
 **Current workaround**
 
-Local validation used Atmos `1.222.0`. CI workflows now pin Atmos `1.222.0`
-directly so stale repository or organization variables cannot silently downgrade
-the dogfood run.
+Local validation used Atmos `1.222.0`. The repository `ATMOS_VERSION` variable
+must remain at `1.222.0` so workflows can keep using a centralized version
+setting without silently downgrading the dogfood run.
 
 **Expected fix**
 
