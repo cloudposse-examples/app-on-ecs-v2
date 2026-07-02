@@ -3,7 +3,6 @@ vars:
   tenant: plat
   region: us-east-2
   environment: ue2
-  github_repo_name: atmos-native-ci
 
 terraform:
   # Configure context

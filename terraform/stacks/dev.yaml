@@ -5,17 +5,9 @@ import:
 
 vars:
   stage: dev
-  deps_stage: dev
   
 terraform:
   auth:
     identities:
       plat-dev/terraform:
         default: true
-  
-components:
-  terraform:
-    app:
-      metadata:
-        # Override Terraform workspace
-        terraform_workspace: "atmos-native-ci-{{ .atmos_stack }}-{{ .atmos_component }}"

@@ -5,7 +5,6 @@ import:
 
 vars:
   stage: fixtures
-  deps_stage: fixtures
   region: us-east-2
 
 terraform:

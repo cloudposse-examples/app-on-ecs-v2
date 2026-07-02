@@ -5,7 +5,6 @@ import:
 
 vars:
   stage: preview
-  deps_stage: dev
 
 terraform:
   auth:
@@ -18,7 +17,7 @@ components:
     app:
       metadata:
         # Override Terraform workspace
-        terraform_workspace: '{{ .vars.github_repo_name }}-{{ .atmos_stack }}-{{ .atmos_component }}-{{ env "PR_NUMBER" | default "0" }}'
+        terraform_workspace: 'atmos-native-ci-{{ .atmos_stack }}-{{ .atmos_component }}-{{ env "PR_NUMBER" | default "0" }}'
       vars:
         attributes:
           - '{{ env "PR_NUMBER" | default "0" }}'

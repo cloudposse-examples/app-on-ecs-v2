@@ -79,7 +79,7 @@ components:
       metadata:
         component: vpc
         type: abstract
-        terraform_workspace: "{{ .vars.tenant }}-{{ .vars.environment }}-{{ .vars.deps_stage }}"
+        terraform_workspace: "{{ .vars.tenant }}-{{ .vars.environment }}-dev"
       backend_type: s3
       backend:
         s3:
@@ -93,9 +93,8 @@ components:
 
 ## Workspace Templating
 
-The `terraform_workspace` uses Go templates with variables from the stack:
+The `terraform_workspace` uses Go templates with shared context variables from the stack:
 - `{{ .vars.tenant }}` - Tenant name (e.g., `plat`)
 - `{{ .vars.environment }}` - Environment code (e.g., `ue2`)
-- `{{ .vars.deps_stage }}` - Stage where dependencies live (e.g., `dev`)
 
-This allows the same dependency config to work across environments by changing `deps_stage` in each stack file.
+Dependency components intentionally point at the shared `dev` dependency state.

@@ -3,6 +3,7 @@ components:
     app:
       metadata:
         component: ecs-task
+        terraform_workspace: "atmos-native-ci-{{ .atmos_stack }}-{{ .atmos_component }}"
       hooks:
         fmt:
           events:
