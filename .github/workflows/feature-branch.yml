@@ -29,7 +29,7 @@ jobs:
       - name: Set up Atmos
         uses: cloudposse/github-action-setup-atmos@v2
         with:
-          atmos-version: ${{ vars.ATMOS_VERSION }}
+          atmos-version: 1.222.0
 
       - name: Checkout
         uses: actions/checkout@v6
@@ -47,7 +47,7 @@ jobs:
   build:
     runs-on: ["ubuntu-latest"]
     container:
-      image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
+      image: ghcr.io/cloudposse/atmos:1.222.0
     defaults:
       run:
         shell: bash
@@ -90,7 +90,7 @@ jobs:
       - name: Set up Atmos
         uses: cloudposse/github-action-setup-atmos@v2
         with:
-          atmos-version: ${{ vars.ATMOS_VERSION }}
+          atmos-version: 1.222.0
 
       - name: Checkout
         uses: actions/checkout@v6
@@ -107,7 +107,7 @@ jobs:
     needs: [ test, build, terraform-e2e ]
     runs-on: ["ubuntu-latest"]
     container:
-      image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
+      image: ghcr.io/cloudposse/atmos:1.222.0
     name: deploy / preview
     if: >-
       github.event_name == 'pull_request' &&
@@ -139,7 +139,7 @@ jobs:
     needs: [ test, build, terraform-e2e ]
     runs-on: ["ubuntu-latest"]
     container:
-      image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
+      image: ghcr.io/cloudposse/atmos:1.222.0
     name: deploy / dev
     if: github.event_name == 'merge_group'
     environment:

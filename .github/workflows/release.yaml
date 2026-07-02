@@ -36,7 +36,7 @@ jobs:
     if: github.event_name == 'release'
     runs-on: ["ubuntu-latest"]
     container:
-      image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
+      image: ghcr.io/cloudposse/atmos:1.222.0
     defaults:
       run:
         shell: bash
@@ -75,7 +75,7 @@ jobs:
        inputs.environment == 'both')
     runs-on: ["ubuntu-latest"]
     container:
-      image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
+      image: ghcr.io/cloudposse/atmos:1.222.0
     name: deploy / staging
     environment:
       name: staging
@@ -108,7 +108,7 @@ jobs:
        inputs.environment == 'both')
     runs-on: ["ubuntu-latest"]
     container:
-      image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
+      image: ghcr.io/cloudposse/atmos:1.222.0
     name: deploy / production
     environment:
       name: prod

@@ -193,7 +193,9 @@ or skip the very features this branch is meant to validate.
 
 **Current workaround**
 
-Local validation used Atmos `1.222.0`.
+Local validation used Atmos `1.222.0`. CI workflows now pin Atmos `1.222.0`
+directly so stale repository or organization variables cannot silently downgrade
+the dogfood run.
 
 **Expected fix**
 
@@ -223,4 +225,3 @@ Manually run `atmos describe component app -s fixtures --format json` or
 
 Atmos should make test-var resolution logs either complete or explicitly
 summarized, especially when resolving fixture outputs after test setup hooks.
-
