@@ -75,6 +75,8 @@ jobs:
           registry: ${{ vars.ECR_REGISTRY }}
           workdir: app
           driver-opts: image=mirror.gcr.io/moby/buildkit:buildx-stable-1
+          cache-from: type=registry,ref=${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:buildcache
+          cache-to: mode=max,image-manifest=true,oci-mediatypes=true,type=registry,ref=${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:buildcache
 
     outputs:
       image: ${{ steps.build.outputs.image }}

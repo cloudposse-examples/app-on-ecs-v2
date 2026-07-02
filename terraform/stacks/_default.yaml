@@ -41,5 +41,5 @@ terraform:
     tools:
       # Use a specific terraform version from toolchain
       opentofu: "1.10.7"
-      tflint: "latest"
-      trivy: "latest"
+      tflint: "0.63.1"
+      trivy: "0.72.0"

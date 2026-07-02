@@ -225,3 +225,32 @@ Manually run `atmos describe component app -s fixtures --format json` or
 
 Atmos should make test-var resolution logs either complete or explicitly
 summarized, especially when resolving fixture outputs after test setup hooks.
+
+## 7. Toolchain dependency installation can fail CI despite `GITHUB_TOKEN`
+
+**Observed behavior**
+
+GitHub Actions ran `atmos terraform test app -s fixtures --ci` with
+`GITHUB_TOKEN` in the step environment. Atmos still failed before Terraform
+while installing inherited tool dependencies:
+
+```text
+Install failed aquasecurity/trivy@latest: failed to get latest version for aquasecurity/trivy: HTTP request failed: GitHub API returned status 403
+```
+
+**Why this blocks dogfooding**
+
+The fixture test only needs OpenTofu, but it inherited repo-wide validation
+tools from `_default.yaml`. A rate-limited `latest` lookup for an unrelated
+tool can fail an emulator test before the fixture resources are even applied.
+
+**Current workaround**
+
+Pin inherited `tflint` and `trivy` versions in `_default.yaml` so CI does not
+perform unauthenticated or token-ignored `latest` lookups.
+
+**Expected fix**
+
+Atmos should either use the GitHub token consistently for toolchain latest
+resolution in CI or make `!unset`/component overrides work cleanly for
+`terraform.dependencies.tools`.
