@@ -3,6 +3,22 @@ components:
     app:
       metadata:
         component: ecs-task
+      hooks:
+        trivy:
+          events:
+            - after.terraform.plan
+          kind: trivy
+          on_failure: fail
+        tflint:
+          events:
+            - before.terraform.plan
+            - before.terraform.test
+          kind: command
+          command: sh
+          args:
+            - -ec
+            - tflint --chdir "$ATMOS_COMPONENT_PATH" --init && tflint --chdir "$ATMOS_COMPONENT_PATH"
+          on_failure: fail
       vars:
         name: app
         ecs: !terraform.state ecs/cluster .
@@ -44,4 +60,3 @@ components:
             low:
               threshold: 10
               period: 60
-

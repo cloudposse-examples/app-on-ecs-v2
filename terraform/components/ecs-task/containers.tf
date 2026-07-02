@@ -1,9 +1,9 @@
 locals {
   container_definitions_json = jsonencode([
     for container_name, container_definition in local.container_definitions :
-      merge(container_definition, { name : container_name })
+    merge(container_definition, { name : container_name })
   ])
-  
+
   container_definitions = jsondecode(data.utils_deep_merge_json.example.output)
 
   override_containers_definitions = {

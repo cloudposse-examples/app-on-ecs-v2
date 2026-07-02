@@ -33,6 +33,8 @@ resource "aws_security_group_rule" "allow_all_egress" {
 }
 
 resource "aws_security_group_rule" "allow_alb_ingress" {
+  count = var.service.load_balancer_enabled && var.lb != null ? 1 : 0
+
   description              = "Allow all inbound traffic from ALB"
   type                     = "ingress"
   from_port                = 0
@@ -43,13 +45,15 @@ resource "aws_security_group_rule" "allow_alb_ingress" {
 }
 
 module "alb_ingress" {
+  count = var.service.load_balancer_enabled && var.lb != null ? 1 : 0
+
   source  = "cloudposse/alb-ingress/aws"
   version = "0.31.0"
 
   vpc_id                        = var.vpc.vpc_id
   unauthenticated_listener_arns = [var.lb.https_listener_arn]
-  unauthenticated_hosts = [local.hostname]
-  unauthenticated_paths = []
+  unauthenticated_hosts         = [local.hostname]
+  unauthenticated_paths         = []
   # When set to catch-all, make priority super high to make sure last to match
   unauthenticated_priority     = -1
   default_target_group_enabled = true
@@ -66,10 +70,10 @@ module "alb_ingress" {
   port                             = 80
 
   load_balancing_algorithm_type = "least_outstanding_requests"
-  deregistration_delay         = 5
-  stickiness_enabled           = false
-  stickiness_type            = "lb_cookie"
-  stickiness_cookie_duration = 86400
+  deregistration_delay          = 5
+  stickiness_enabled            = false
+  stickiness_type               = "lb_cookie"
+  stickiness_cookie_duration    = 86400
 
   context = module.service_label.context
 }
@@ -97,17 +101,22 @@ resource "aws_ecs_service" "default" {
     rollback = true
   }
   sigint_rollback       = true
-  wait_for_steady_state = true
+  wait_for_steady_state = var.service.wait_for_steady_state
 
   deployment_maximum_percent         = var.service.deployment_maximum_percent
   deployment_minimum_healthy_percent = var.service.deployment_minimum_healthy_percent
 
   availability_zone_rebalancing = "DISABLED"
 
-  capacity_provider_strategy {
-    capacity_provider = "FARGATE"
-    weight            = 1
-    base              = 1
+  launch_type = var.service.capacity_provider_strategy_enabled ? null : coalesce(var.service.launch_type, "FARGATE")
+
+  dynamic "capacity_provider_strategy" {
+    for_each = var.service.capacity_provider_strategy_enabled ? [true] : []
+    content {
+      capacity_provider = "FARGATE"
+      weight            = 1
+      base              = 1
+    }
   }
 
   # placement_constraints {
@@ -128,26 +137,29 @@ resource "aws_ecs_service" "default" {
 
   # https://www.terraform.io/docs/providers/aws/r/ecs_service.html#network_configuration
   network_configuration {
-      security_groups  = [aws_security_group.ecs_service.id]
-      subnets          = var.vpc.private_subnet_ids
-      assign_public_ip = false
+    security_groups  = [aws_security_group.ecs_service.id]
+    subnets          = var.vpc.private_subnet_ids
+    assign_public_ip = false
   }
 
   iam_role = one(aws_iam_role.ecs_service[*].arn)
 
-  load_balancer {
-    container_name   = "app"
-    container_port   = local.container_definitions["app"].portMappings[0].containerPort
-    target_group_arn = module.alb_ingress.target_group_arn
+  dynamic "load_balancer" {
+    for_each = var.service.load_balancer_enabled && var.lb != null ? [true] : []
+    content {
+      container_name   = "app"
+      container_port   = local.container_definitions["app"].portMappings[0].containerPort
+      target_group_arn = module.alb_ingress[0].target_group_arn
+    }
   }
-  
-  health_check_grace_period_seconds  = 10
+
+  health_check_grace_period_seconds = var.service.load_balancer_enabled ? 10 : null
 
   tags = module.this.tags
 
   # Avoid race condition on destroy.
   # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
-  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service]
+  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service, module.alb_ingress]
 
   # Ignore changes to desired count as we use autoscaling instead
   lifecycle {

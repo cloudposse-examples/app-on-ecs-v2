@@ -14,17 +14,24 @@ permissions:
   id-token: write
   contents: read
   statuses: write
+  checks: write
+  pull-requests: write
 
 env:
-  ATMOS_PROFILE: github 
+  ATMOS_PROFILE: github
 
 jobs:
   test:
     needs: [ build ]
     runs-on: ["ubuntu-latest"]
     steps:
+      - name: Set up Atmos
+        uses: cloudposse/github-action-setup-atmos@v2
+        with:
+          atmos-version: ${{ vars.ATMOS_VERSION }}
+
       - name: Checkout
-        uses: actions/checkout@v6
+        run: atmos git clone
 
       - name: Set up Go
         uses: actions/setup-go@v6
@@ -48,7 +55,10 @@ jobs:
         run: apt-get update && apt-get install -y docker.io bc
 
       - name: Checkout
-        uses: actions/checkout@v6
+        run: atmos git clone
+
+      - name: Atmos Cache
+        uses: cloudposse/atmos/actions/cache@v1
 
       - name: AWS Auth
         run: |
@@ -69,8 +79,31 @@ jobs:
       image: ${{ steps.build.outputs.image }}
       tag: ${{ steps.build.outputs.tag }}
 
+  terraform-e2e:
+    runs-on: ["ubuntu-latest"]
+    name: terraform / emulator e2e
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Set up Atmos
+        uses: cloudposse/github-action-setup-atmos@v2
+        with:
+          atmos-version: ${{ vars.ATMOS_VERSION }}
+
+      - name: Checkout
+        run: atmos git clone
+
+      - name: Atmos Cache
+        uses: cloudposse/atmos/actions/cache@v1
+
+      - name: Run ECS component tests against AWS emulator
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: atmos terraform test app -s fixtures --ci
+
   deploy-preview:
-    needs: [ test, build ]
+    needs: [ test, build, terraform-e2e ]
     runs-on: ["ubuntu-latest"]
     container:
       image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
@@ -86,7 +119,10 @@ jobs:
         shell: bash
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        run: atmos git clone
+
+      - name: Atmos Cache
+        uses: cloudposse/atmos/actions/cache@v1
 
       - name: Deploy ECS Service
         id: deploy
@@ -99,7 +135,7 @@ jobs:
           atmos terraform deploy app -s preview
 
   deploy-dev:
-    needs: [ test, build ]
+    needs: [ test, build, terraform-e2e ]
     runs-on: ["ubuntu-latest"]
     container:
       image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
@@ -113,7 +149,10 @@ jobs:
         shell: bash
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        run: atmos git clone
+
+      - name: Atmos Cache
+        uses: cloudposse/atmos/actions/cache@v1
 
       - name: Deploy ECS Service
         id: deploy

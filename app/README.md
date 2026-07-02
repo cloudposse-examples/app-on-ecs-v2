@@ -20,13 +20,16 @@ A simple Go web server designed to demonstrate container deployment strategies. 
 
 ## Local Development
 
-Run the application locally using Podman Compose:
+Run the application locally using Atmos 1.222 native containers:
 
 ```bash
 # From repository root
 atmos up    # Builds and runs on http://localhost:8080
+atmos logs  # Stream container logs
 atmos down  # Stop the app
 ```
+
+The local container component is defined in `terraform/stacks/local.yaml`.
 
 ## Building
 

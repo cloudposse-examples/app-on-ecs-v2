@@ -31,10 +31,8 @@ data "aws_iam_policy_document" "ecs_task" {
 
 // Attach managed IAM policies to the ECS task role
 resource "aws_iam_role_policy_attachment" "ecs_task" {
-  for_each = toset([
-    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
-    "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
-  ])
+  for_each = toset(var.task_policy_arns)
+
   role       = aws_iam_role.ecs_task.id
   policy_arn = each.value
 }
@@ -46,7 +44,7 @@ data "aws_iam_policy_document" "ecs_task_policy" {
   dynamic "statement" {
     for_each = local.efs_volume_resources != [] ? [local.efs_volume_resources] : []
     content {
-      effect = "Allow"
+      effect    = "Allow"
       resources = local.efs_volume_resources
       actions = [
         "elasticfilesystem:ClientMount",

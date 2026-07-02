@@ -3,17 +3,20 @@
 
 commands:
   - name: up
-    description: Start the application locally using Podman Compose
-    working_directory: app/test
+    description: Start the application locally using Atmos native containers
     steps:
       - echo "Starting app at http://localhost:8080 (dashboard at http://localhost:8080/dashboard)"
-      - podman compose up --build
+      - atmos container up app -s local
 
   - name: down
-    description: Stop the local Podman Compose application
-    working_directory: app/test
+    description: Stop the local Atmos native container application
     steps:
-      - podman compose down
+      - atmos container down app -s local
+
+  - name: logs
+    description: Stream local application container logs
+    steps:
+      - atmos container logs app -s local
 
   - name: test
     description: Run Go tests

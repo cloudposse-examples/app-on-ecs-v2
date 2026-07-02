@@ -1,0 +1,38 @@
+vars:
+  stage: local
+  region: us-east-2
+
+components:
+  container:
+    app:
+      composition: app
+      image: atmos-native-ci:local
+      build:
+        context: app
+        dockerfile: Dockerfile
+        tags:
+          - atmos-native-ci:local
+      env:
+        COLOR: blue
+      run:
+        ports:
+          - host: 8080
+            container: 8080
+        mounts:
+          - type: bind
+            source: app/public
+            target: /app/public
+        restart:
+          policy: unless-stopped
+        healthcheck:
+          test: ["CMD-SHELL", "curl -fsS http://localhost:8080/healthz || exit 1"]
+          interval: 10s
+          timeout: 3s
+          retries: 5
+          start_period: 5s
+
+compositions:
+  app:
+    description: Local application runtime
+    services:
+      - app

@@ -44,7 +44,10 @@ jobs:
         run: apt-get update && apt-get install -y docker.io bc
 
       - name: Checkout
-        uses: actions/checkout@v6
+        run: atmos git clone
+
+      - name: Atmos Cache
+        uses: cloudposse/atmos/actions/cache@v1
 
       - name: AWS Auth
         run: |
@@ -81,7 +84,10 @@ jobs:
         shell: bash
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        run: atmos git clone
+
+      - name: Atmos Cache
+        uses: cloudposse/atmos/actions/cache@v1
 
       - name: Deploy ECS Service
         id: deploy
@@ -111,7 +117,10 @@ jobs:
         shell: bash
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        run: atmos git clone
+
+      - name: Atmos Cache
+        uses: cloudposse/atmos/actions/cache@v1
 
       - name: Deploy ECS Service
         id: deploy

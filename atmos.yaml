@@ -35,6 +35,12 @@ components:
     init_run_reconfigure: true
     # Can also be set using `ATMOS_COMPONENTS_TERRAFORM_AUTO_GENERATE_BACKEND_FILE` ENV var, or `--auto-generate-backend-file` command-line argument
     auto_generate_backend_file: true
+    auto_generate_files: true
+    platforms:
+      - linux_amd64
+      - darwin_arm64
+    cache:
+      enabled: true
 
 stacks:
   # Can also be set using `ATMOS_STACKS_BASE_PATH` ENV var, or `--config-dir` and `--stacks-dir` command-line arguments
@@ -94,6 +100,9 @@ ci:
   # Auto-enabled when CI detected, or explicit
   enabled: true
 
+  cache:
+    enabled: true
+
   # Output variables for downstream jobs
   # GitHub: $GITHUB_OUTPUT, GitLab: dotenv artifacts
   output:
@@ -114,6 +123,12 @@ ci:
     enabled: true
     # template: "custom-summary.md"
 
+  annotations:
+    enabled: true
+
+  results:
+    enabled: false
+
   # Commit status checks
   # GitHub: Check Runs API, GitLab: Commit Status API
   checks:
@@ -133,5 +148,3 @@ ci:
   #   terraform:
   #     plan: "plan.md"
   #     apply: "apply.md"
-
-

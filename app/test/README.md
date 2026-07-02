@@ -1,6 +1,6 @@
 # Test
 
-Local development testing using Podman Compose.
+Local development testing using Atmos native containers.
 
 ## Quick Start
 
@@ -8,14 +8,23 @@ Local development testing using Podman Compose.
 # Start the app locally
 atmos up
 
+# Stream logs
+atmos logs
+
 # Stop the app
 atmos down
 ```
 
-Or use podman compose directly:
+The app will be available at http://localhost:8080.
+
+## Terraform E2E
+
+Run the ECS task Terraform component against the local AWS emulator:
 
 ```bash
-podman compose up --build
+atmos terraform test app -s fixtures
 ```
 
-The app will be available at http://localhost:8080
+The fixture stack source-provisions the VPC and ECS cluster components, starts
+the AWS emulator, applies those dependencies, runs `ecs_task.tftest.hcl`, and
+then tears the dependencies and emulator down.

@@ -4,7 +4,7 @@ GitHub Actions pipelines for building, validating, and deploying the application
 
 | Workflow | Trigger | Action |
 |----------|---------|--------|
-| `feature-branch.yml` | Pull request, merge queue | Build image, run tests, deploy preview (PR with `deploy` label), deploy dev (merge queue gate) |
+| `feature-branch.yml` | Pull request, merge queue | Build image, run Go tests, run Terraform emulator E2E, deploy preview (PR with `deploy` label), deploy dev (merge queue gate) |
 | `validate.yml` | Pull request, merge queue | Lint CODEOWNERS |
 | `main-branch.yaml` | Push to `main` | Update draft release notes |
 | `release.yaml` | Published release, manual dispatch | Promote image, deploy to staging and/or prod |
@@ -53,12 +53,16 @@ sequenceDiagram
     GH->>GA: Trigger feature-branch workflow (pull_request)
     GA->>ECR: Build & push Docker image (sha-xxx)
     GA->>GA: Run Go tests
+    GA->>Atmos: atmos terraform test app -s fixtures --ci
+    Atmos->>TF: Apply VPC/ECS fixtures against AWS emulator
+    TF-->>Atmos: Run ECS task Terraform test
     GA-->>GH: Required checks pass
     Dev->>GH: Click "Merge when ready"
     GH->>GH: Place PR on queue ref (gh-readonly-queue/main/...)
     GH->>GA: Trigger feature-branch workflow (merge_group)
     GA->>ECR: Build & push Docker image
     GA->>GA: Run Go tests
+    GA->>Atmos: atmos terraform test app -s fixtures --ci
     GA->>Atmos: atmos terraform deploy app -s dev
     Atmos->>TF: tofu apply
     TF->>ECS: Update dev ECS service
@@ -147,7 +151,8 @@ sequenceDiagram
 ```mermaid
 graph LR
     A[Open PR] --> B[Build & Test]
-    B --> C{PR has<br/>`deploy` label?}
+    B --> B2[Terraform Emulator E2E]
+    B2 --> C{PR has<br/>`deploy` label?}
     C -->|Yes| D[Deploy Preview]
     C -->|No| E[Approve]
     D --> E
