@@ -32,14 +32,15 @@ called without a `key`.
 
 **Why this blocks dogfooding**
 
-The intended dogfood flow was to use `atmos git clone` in CI. That is not
-possible when the selected profile lives in the repository being cloned.
+The intended Atmos-core dogfood flow was to use `atmos git clone` in CI. That
+does not belong in this app repository's workflows while the selected profile
+lives in the repository being cloned.
 
 **Current workaround**
 
-Use `actions/checkout@v6` for initial checkout, then allow subsequent Atmos
-commands to use `ATMOS_PROFILE=github` once `profiles/github/atmos.yaml` exists
-in the workspace.
+Use `actions/checkout@v6` for initial checkout in this repository, then allow
+subsequent Atmos commands to use `ATMOS_PROFILE=github` once
+`profiles/github/atmos.yaml` exists in the workspace.
 
 **Expected fix**
 
@@ -285,6 +286,31 @@ Atmos on the runner. That works for ordinary Atmos commands, but emulator
 identity injection currently produces a host-loopback endpoint that is invalid
 from a sibling job container.
 
+**Desired use case**
+
+An app repository should be able to run Atmos from
+`ghcr.io/cloudposse/atmos:<version>` in GitHub Actions, mount the host Docker
+socket so Atmos can start emulator containers, and then run:
+
+```text
+atmos terraform test app -s fixtures --ci
+```
+
+That should work without wrapping the command in `docker run --network host`.
+Terraform/OpenTofu should be able to reach the emulator endpoint that Atmos
+injects into auth/profile/provider configuration.
+
+**Minimal reproduction shape**
+
+1. Run a GitHub Actions job from an Atmos container image.
+2. Install or provide a Docker CLI inside that job container.
+3. Mount the host Docker socket into the job container.
+4. Run `atmos terraform test app -s fixtures --ci`.
+5. Atmos starts the AWS emulator through the host Docker daemon.
+6. Atmos injects `http://127.0.0.1:<published-port>` as the emulator endpoint.
+7. Terraform fails because `127.0.0.1` resolves to the job container, not the
+   Docker host where the emulator port was published.
+
 **Current workaround**
 
 Run the Atmos image explicitly from the host runner with `docker run --network
@@ -294,9 +320,18 @@ network namespace where the emulator publishes its port.
 
 **Expected fix**
 
-Atmos should make emulator endpoints container-context aware, or document and
-support a first-class GitHub Actions container mode for emulators so the
-injected endpoint is reachable from the process running Terraform.
+Atmos should make emulator endpoints container-context aware so the injected
+endpoint is reachable from the process running Terraform:
+
+- Host-native Atmos should keep using `127.0.0.1:<published-host-port>`.
+- Containerized Atmos should prefer connecting emulator containers to the
+  current Atmos/job container network, then inject a network alias plus the
+  emulator container port.
+- If sharing the current container network is not possible, Atmos should fall
+  back to a host-gateway reachable address plus the published host port.
+
+Once Atmos core handles this, app repositories should not need `--network host`
+for emulator-backed Terraform tests.
 
 ## 9. `terraform clean` in fixture setup can break emulator resolution
 
@@ -339,3 +374,47 @@ it with `atmos terraform clean` in the test setup hook.
 `atmos terraform clean` should not interfere with later emulator identity
 resolution in the same `before.terraform.test` hook, or Atmos should document
 the cleanup boundary required before `emulator up`.
+
+## 10. `terraform test --ci` summary is too sparse on passing runs
+
+**Observed behavior**
+
+The successful GitHub Actions run `28612339269` ran:
+
+```text
+atmos terraform test app -s fixtures --ci
+```
+
+The raw job log included the OpenTofu test result:
+
+```text
+Success! 1 passed, 0 failed, 0 skipped.
+```
+
+GitHub commit status for the merge commit only recorded
+`atmos/test/fixtures/app` with description `1 passed`. The GitHub check-run API
+had no check output text, no summary, no annotations, no artifacts, and no PR
+comment with the `.tftest.hcl` run name or assertion details.
+
+**Why this blocks dogfooding**
+
+Atmos documentation says `terraform test` native CI should write job summaries
+with per-run pass/fail/skip results and inline failing assertions. The current
+output proves CI is enabled, but a passing run still collapses to a count-only
+status page that does not show `applies_ecs_service_against_emulator` or the
+assertions that were exercised.
+
+**Current workaround**
+
+The workflow still runs Atmos native CI, but wraps the command in
+`.github/scripts/atmos-terraform-test-ci-summary.sh`. The wrapper captures the
+verbose Atmos/OpenTofu output, appends a small Terraform test section to
+`$GITHUB_STEP_SUMMARY`, lists the `.tftest.hcl` run names, and includes failure
+diagnostics when the command exits non-zero.
+
+**Expected fix**
+
+Atmos should make `atmos terraform test --ci` publish the rich test summary
+directly: component, stack, `.tftest.hcl` file, run name, assertion status, and
+failure diagnostics. The native summary should be sufficient without a
+repository wrapper.

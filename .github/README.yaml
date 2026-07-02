@@ -82,7 +82,6 @@ introduction: |-
   - **[GitHub artifact caching](https://atmos.tools/ci)** for the Atmos cache root, including toolchain installs, Terraform registry artifacts, source-provisioned workdirs, and remote import cache entries.
   - **[Provider and module caching](https://atmos.tools/cli/commands/terraform/cache)** through the Terraform registry cache proxy.
   - **[Toolchain installation](https://atmos.tools/cli/commands/toolchain/usage)** for OpenTofu, TFLint, and Trivy from `.tool-versions` and stack `dependencies.tools`.
-  - **[Native Git clone](https://atmos.tools/cli/configuration/git)** in GitHub Actions instead of `actions/checkout`.
   - **[Source provisioning](https://atmos.tools/examples/source-provisioning)** and **[workdir provisioning](https://atmos.tools/stacks/components/provision/workdir)** for remote VPC and ECS cluster fixture components.
   - **[Remote stack imports](https://atmos.tools/stacks/imports)** for shared account-map compatibility configuration.
   - **[Generate blocks](https://atmos.tools/stacks/generate)** for provider files, emulator-friendly fixture overrides, and compatibility shims.
