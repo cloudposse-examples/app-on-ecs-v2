@@ -55,6 +55,7 @@ stacks:
   excluded_paths:
     - "defaults/*"
     - "deps/*"
+    - "fixtures/*"
 
   # Can also be set using `ATMOS_STACKS_NAME_PATTERN` ENV var
   name_pattern: "{stage}"
@@ -123,11 +124,13 @@ ci:
     enabled: true
     # template: "custom-summary.md"
 
+  # Keep annotations disabled when results are enabled to avoid duplicate GitHub
+  # feedback for the same SARIF findings.
   annotations:
-    enabled: true
+    enabled: false
 
   results:
-    enabled: false
+    enabled: true
 
   # Commit status checks
   # GitHub: Check Runs API, GitLab: Commit Status API

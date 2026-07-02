@@ -16,6 +16,7 @@ permissions:
   statuses: write
   checks: write
   pull-requests: write
+  security-events: write
 
 env:
   ATMOS_PROFILE: github
