@@ -79,26 +79,49 @@ jobs:
 
   e2e:
     runs-on: ["ubuntu-latest"]
-    container:
-      image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
     name: e
     defaults:
       run:
         shell: bash
     steps:
-      - name: Install Docker CLI
-        run: apt-get update && apt-get install -y docker.io
-
       - name: Checkout
         uses: actions/checkout@v6
-
-      - name: Atmos Cache
-        uses: cloudposse/atmos/actions/cache@v1
 
       - name: Run ECS component tests against AWS emulator
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: atmos terraform test app -s fixtures --ci
+        run: |
+          docker run --rm --network host \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$GITHUB_WORKSPACE:$GITHUB_WORKSPACE" \
+            -v "$RUNNER_TEMP:$RUNNER_TEMP" \
+            -w "$GITHUB_WORKSPACE" \
+            -e ATMOS_PROFILE \
+            -e CI \
+            -e DEBIAN_FRONTEND=noninteractive \
+            -e GITHUB_ACTIONS \
+            -e GITHUB_API_URL \
+            -e GITHUB_BASE_REF \
+            -e GITHUB_ENV \
+            -e GITHUB_EVENT_NAME \
+            -e GITHUB_EVENT_PATH \
+            -e GITHUB_GRAPHQL_URL \
+            -e GITHUB_HEAD_REF \
+            -e GITHUB_JOB \
+            -e GITHUB_OUTPUT \
+            -e GITHUB_PATH \
+            -e GITHUB_REF \
+            -e GITHUB_REPOSITORY \
+            -e GITHUB_RUN_ATTEMPT \
+            -e GITHUB_RUN_ID \
+            -e GITHUB_RUN_NUMBER \
+            -e GITHUB_SERVER_URL \
+            -e GITHUB_SHA \
+            -e GITHUB_STEP_SUMMARY \
+            -e GITHUB_TOKEN \
+            -e GITHUB_WORKFLOW \
+            ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }} \
+            sh -lc 'apt-get update && apt-get install -y --no-install-recommends docker-cli && git config --global --add safe.directory "$GITHUB_WORKSPACE" && atmos terraform test app -s fixtures --ci'
 
   deploy-preview:
     needs: [ test, build, e2e ]

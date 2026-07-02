@@ -254,3 +254,88 @@ perform unauthenticated or token-ignored `latest` lookups.
 Atmos should either use the GitHub token consistently for toolchain latest
 resolution in CI or make `!unset`/component overrides work cleanly for
 `terraform.dependencies.tools`.
+
+## 8. Emulator identity loopback endpoints fail inside GitHub job containers
+
+**Observed behavior**
+
+Running the e2e job as a GitHub Actions job container with:
+
+```yaml
+container:
+  image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
+```
+
+required installing a Docker CLI in the container so `atmos emulator up aws`
+could use the mounted host Docker socket. After that, Atmos started the AWS
+emulator successfully, but Terraform failed against the injected endpoint:
+
+```text
+Post "http://127.0.0.1:32768/": dial tcp 127.0.0.1:32768: connect: connection refused
+```
+
+The emulator container was started through the host Docker daemon and published
+its port on the host. Inside the GitHub job container, `127.0.0.1` is the job
+container itself, not the host where the emulator port is listening.
+
+**Why this blocks dogfooding**
+
+The intended CI shape was the Atmos container image approach without installing
+Atmos on the runner. That works for ordinary Atmos commands, but emulator
+identity injection currently produces a host-loopback endpoint that is invalid
+from a sibling job container.
+
+**Current workaround**
+
+Run the Atmos image explicitly from the host runner with `docker run --network
+host` and the host Docker socket mounted. This keeps the Atmos image approach
+while making the injected `127.0.0.1:<port>` endpoint resolve to the same host
+network namespace where the emulator publishes its port.
+
+**Expected fix**
+
+Atmos should make emulator endpoints container-context aware, or document and
+support a first-class GitHub Actions container mode for emulators so the
+injected endpoint is reachable from the process running Terraform.
+
+## 9. `terraform clean` in fixture setup can break emulator resolution
+
+**Observed behavior**
+
+Replacing the fixture setup's manual cleanup with:
+
+```yaml
+- type: atmos
+  command: terraform clean vpc -s fixtures --everything --force
+- type: atmos
+  command: terraform clean ecs/cluster -s fixtures --everything --force
+```
+
+looked like the right dogfood path, but `atmos terraform test app -s fixtures
+--ci` then failed after `emulator up` and source pull:
+
+```text
+authentication failed: post-authentication failed: resolve emulator "aws" for
+identity "local-aws": emulator is not running: fixtures/emulator/aws
+```
+
+The hook had just reported the emulator as up, so the failure appears to be in
+how the subsequent Atmos subprocess resolves the emulator instance after the
+clean/source-pull sequence.
+
+**Why this blocks dogfooding**
+
+The fixture setup should be able to use Atmos-native cleanup instead of shell
+`rm -f`/`rm -rf` shims. Right now the native cleanup path makes the following
+fixture applies unable to see the emulator that the same hook started.
+
+**Current workaround**
+
+Keep the explicit shell cleanup for fixture state/workdirs instead of replacing
+it with `atmos terraform clean` in the test setup hook.
+
+**Expected fix**
+
+`atmos terraform clean` should not interfere with later emulator identity
+resolution in the same `before.terraform.test` hook, or Atmos should document
+the cleanup boundary required before `emulator up`.
