@@ -1,6 +1,5 @@
 import:
   - _default.yaml
-  - "git::https://github.com/cloudposse/infra-live.git//stacks/mixins/account-map.yaml?ref=209880bab85ead2d9b5f5e07b648e05122d42907"
   - fixtures/vpc.yaml
   - fixtures/ecs-cluster.yaml
 
