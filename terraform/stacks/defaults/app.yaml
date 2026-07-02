@@ -4,6 +4,16 @@ components:
       metadata:
         component: ecs-task
       hooks:
+        fmt:
+          events:
+            - before.terraform.init
+            - before.terraform.plan
+          kind: command
+          command: sh
+          args:
+            - -ec
+            - tofu fmt -check -recursive "$ATMOS_COMPONENT_PATH"
+          on_failure: fail
         trivy:
           events:
             - after.terraform.plan
