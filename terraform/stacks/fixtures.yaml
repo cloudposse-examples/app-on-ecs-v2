@@ -48,10 +48,8 @@ components:
               command: |
                 mkdir -p .context/tfstate
                 rm -f .context/tfstate/fixtures-*.tfstate*
-            - type: atmos
-              command: terraform clean vpc -s fixtures --everything --force
-            - type: atmos
-              command: terraform clean ecs/cluster -s fixtures --everything --force
+                rm -f .workdir/.context/tfstate/fixtures-*.tfstate*
+                rm -rf terraform/components/vpc/terraform.tfstate.d terraform/components/ecs/cluster/terraform.tfstate.d terraform/components/ecs-task/terraform.tfstate.d
             - type: emulator
               component: aws
               action: up
