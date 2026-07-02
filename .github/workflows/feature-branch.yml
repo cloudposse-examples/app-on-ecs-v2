@@ -81,11 +81,14 @@ jobs:
     runs-on: ["ubuntu-latest"]
     container:
       image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
-    name: terraform / emulator e2e
+    name: e
     defaults:
       run:
         shell: bash
     steps:
+      - name: Install Docker CLI
+        run: apt-get update && apt-get install -y docker.io
+
       - name: Checkout
         uses: actions/checkout@v6
 
