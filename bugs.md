@@ -11,8 +11,9 @@ GitHub Actions integration needs to be fixed.
 ## Status checked against Atmos 1.223.0
 
 Checked on 2026-07-18 with local `atmos version` reporting `1.223.0`.
-Docker was not available locally, so emulator-backed Terraform execution still
-needs GitHub Actions validation.
+Docker was not available locally. GitHub Actions reached the emulator step with
+the Atmos 1.223.0 image, but the `e2e` job container was missing the Docker CLI
+needed to use the mounted host Docker socket.
 
 Atmos PR `cloudposse/atmos#2681` explicitly fixes the native CI dogfood
 regressions for `atmos git clone` bootstrap, local backend `path` state reads,
@@ -31,7 +32,7 @@ Current status:
 | 5 | Fixed in repo configuration | GitHub repository variable `ATMOS_VERSION` is `1.223.0`. |
 | 6 | Not confirmed fixed | The `1.223.0` release notes do not call out complete `test.vars` output lookup logging. |
 | 7 | Fixed upstream | `cloudposse/atmos#2681` says Aqua latest lookup fallback was fixed. |
-| 8 | Fixed upstream, needs CI confirmation | `cloudposse/atmos#2681` says emulator containers now attach to the current GitHub job container network with aliases. |
+| 8 | Fixed upstream, needs CI confirmation after Docker CLI install | `cloudposse/atmos#2681` says emulator containers now attach to the current GitHub job container network with aliases; the first 1.223 run failed earlier because the e2e job container lacked a Docker CLI. |
 | 9 | Not confirmed fixed | The `1.223.0` release notes do not call out `terraform clean` preserving emulator identity resolution. |
 | 10 | Not confirmed fixed | `cloudposse/atmos#2663` implemented Terraform test job summaries, but this still needs checking in the GitHub job summary UI. |
 | 11 | Not fixed in `v1`/`v1.223.0` action refs | `cloudposse/atmos/actions/cache@v1` resolves to `v1.223.0-rc.11`, and `v1.223.0` also has the dangling `.claude/skills/atmos-gitops` symlink. |

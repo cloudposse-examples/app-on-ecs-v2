@@ -86,6 +86,9 @@ jobs:
       run:
         shell: bash
     steps:
+      - name: Install Docker CLI
+        run: apt-get update && apt-get install -y docker.io
+
       - name: Checkout
         uses: actions/checkout@v6
 
