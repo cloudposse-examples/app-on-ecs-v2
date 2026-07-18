@@ -11,9 +11,15 @@ GitHub Actions integration needs to be fixed.
 ## Status checked against Atmos 1.223.0
 
 Checked on 2026-07-18 with local `atmos version` reporting `1.223.0`.
-Docker was not available locally. GitHub Actions reached the emulator step with
-the Atmos 1.223.0 image, but the `e2e` job container was missing the Docker CLI
-needed to use the mounted host Docker socket.
+Docker was not available locally, so emulator-backed execution was validated in
+GitHub Actions run `29660740150` after adding Docker CLI installation to the
+`e2e` job container.
+
+The GitHub Actions e2e run passed with the Atmos `1.223.0` image. The log showed
+`emulator aws is up at http://fixtures-aws:4566` and `Success! 1 passed, 0
+failed, 0 skipped.`, confirming the emulator endpoint is now a job-container
+network alias rather than the old unreachable `127.0.0.1:<published-port>`
+endpoint.
 
 Atmos PR `cloudposse/atmos#2681` explicitly fixes the native CI dogfood
 regressions for `atmos git clone` bootstrap, local backend `path` state reads,
@@ -26,13 +32,13 @@ Current status:
 | Bug | Status in 1.223.0 | Evidence |
 |-----|-------------------|----------|
 | 1 | Fixed upstream | `cloudposse/atmos#2681` says native CI bootstrap now allows `atmos git clone` before repo-local profile/config files exist. |
-| 2 | Fixed upstream, needs repo e2e confirmation | `cloudposse/atmos#2681` says local backend `path` state reads were fixed; local emulator test could not run without Docker. |
+| 2 | Fixed upstream, partially confirmed by repo e2e | `cloudposse/atmos#2681` says local backend `path` state reads were fixed; run `29660740150` passed with current fixture config, but the original `test.vars` `!terraform.state` workaround is still present. |
 | 3 | Likely fixed upstream, needs workaround-removal test | `cloudposse/atmos#2681` covers local backend `path` state reads, but this repo still uses the absolute-path workaround. |
-| 4 | Fixed upstream | `cloudposse/atmos#2681` says remote source-provisioned lock persistence was fixed. |
+| 4 | Fixed upstream, confirmed by repo e2e | `cloudposse/atmos#2681` says remote source-provisioned lock persistence was fixed; run `29660740150` passed without the previous provider-lock persistence error. |
 | 5 | Fixed in repo configuration | GitHub repository variable `ATMOS_VERSION` is `1.223.0`. |
 | 6 | Not confirmed fixed | The `1.223.0` release notes do not call out complete `test.vars` output lookup logging. |
-| 7 | Fixed upstream | `cloudposse/atmos#2681` says Aqua latest lookup fallback was fixed. |
-| 8 | Fixed upstream, needs CI confirmation after Docker CLI install | `cloudposse/atmos#2681` says emulator containers now attach to the current GitHub job container network with aliases; the first 1.223 run failed earlier because the e2e job container lacked a Docker CLI. |
+| 7 | Fixed upstream, confirmed by repo e2e | `cloudposse/atmos#2681` says Aqua latest lookup fallback was fixed; run `29660740150` installed OpenTofu, TFLint, and Trivy successfully. |
+| 8 | Fixed upstream, confirmed by repo e2e | `cloudposse/atmos#2681` says emulator containers now attach to the current GitHub job container network with aliases; run `29660740150` injected `http://fixtures-aws:4566` and passed. |
 | 9 | Not confirmed fixed | The `1.223.0` release notes do not call out `terraform clean` preserving emulator identity resolution. |
 | 10 | Not confirmed fixed | `cloudposse/atmos#2663` implemented Terraform test job summaries, but this still needs checking in the GitHub job summary UI. |
 | 11 | Not fixed in `v1`/`v1.223.0` action refs | `cloudposse/atmos/actions/cache@v1` resolves to `v1.223.0-rc.11`, and `v1.223.0` also has the dangling `.claude/skills/atmos-gitops` symlink. |
