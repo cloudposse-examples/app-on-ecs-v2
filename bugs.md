@@ -1,7 +1,7 @@
 # Atmos Dogfood Bugs
 
 This file tracks bugs and dogfood gaps encountered while wiring this repository
-to Atmos 1.222 native CI, emulator fixtures, source-provisioned components, and
+to Atmos 1.223 native CI, emulator fixtures, source-provisioned components, and
 Terraform test variables.
 
 The point of this branch is to dogfood Atmos. Workarounds below should not be
@@ -173,7 +173,7 @@ The provider-lock provisioner should persist per-instance lock files to an
 existing path for git source-provisioned components, or skip that persistence
 cleanly when no writable source path exists.
 
-## 5. CI is not actually dogfooding Atmos 1.222 when `vars.ATMOS_VERSION` is old
+## 5. CI is not actually dogfooding Atmos 1.223 when `vars.ATMOS_VERSION` is old
 
 **Observed behavior**
 
@@ -184,7 +184,7 @@ Setup atmos version spec 1.216.0
 Successfully set up Atmos version 1.216.0
 ```
 
-This branch is specifically dogfooding Atmos 1.222 features, including emulator
+This branch is specifically dogfooding Atmos 1.223 features, including emulator
 fixtures and Terraform `test.vars`.
 
 **Why this blocks dogfooding**
@@ -194,8 +194,8 @@ or skip the very features this branch is meant to validate.
 
 **Current workaround**
 
-Local validation used Atmos `1.222.0`. The repository `ATMOS_VERSION` variable
-must remain at `1.222.0` so workflows can keep using a centralized version
+Local validation should use Atmos `1.223.0`. The repository `ATMOS_VERSION`
+variable must remain at `1.223.0` so workflows can keep using a centralized version
 setting without silently downgrading the dogfood run.
 
 **Expected fix**
@@ -391,12 +391,12 @@ The raw job log included the OpenTofu test result:
 Success! 1 passed, 0 failed, 0 skipped.
 ```
 
-The run used `ghcr.io/cloudposse/atmos:1.222.0`. Atmos PR
-`cloudposse/atmos#2663`, included in `v1.222.0`, says it added native-CI job
-step summaries for `terraform test`: pass/fail/skip badges and a per-run results
-table. The workflow passed `GITHUB_ACTIONS`, `GITHUB_STEP_SUMMARY`,
-`GITHUB_OUTPUT`, and mounted `$RUNNER_TEMP`, which is where GitHub normally
-places the step summary file.
+The current dogfood target is `ghcr.io/cloudposse/atmos:1.223.0`. Atmos PR
+`cloudposse/atmos#2663` says it added native-CI job step summaries for
+`terraform test`: pass/fail/skip badges and a per-run results table. The
+workflow passed `GITHUB_ACTIONS`, `GITHUB_STEP_SUMMARY`, `GITHUB_OUTPUT`, and
+mounted `$RUNNER_TEMP`, which is where GitHub normally places the step summary
+file.
 
 GitHub commit status for the merge commit only recorded
 `atmos/test/fixtures/app` with description `1 passed`. The GitHub check/status
