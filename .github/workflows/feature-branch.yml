@@ -54,7 +54,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Atmos Cache
-        uses: cloudposse/atmos/actions/cache@v1
+        uses: cloudposse/atmos/actions/cache@v1.223.0-rc.6
 
       - name: AWS Auth
         run: |
@@ -115,7 +115,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Atmos Cache
-        uses: cloudposse/atmos/actions/cache@v1
+        uses: cloudposse/atmos/actions/cache@v1.223.0-rc.6
 
       - name: Deploy ECS Service
         id: deploy
@@ -145,7 +145,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Atmos Cache
-        uses: cloudposse/atmos/actions/cache@v1
+        uses: cloudposse/atmos/actions/cache@v1.223.0-rc.6
 
       - name: Deploy ECS Service
         id: deploy

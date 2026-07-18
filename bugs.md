@@ -8,6 +8,34 @@ The point of this branch is to dogfood Atmos. Workarounds below should not be
 treated as final design decisions; they identify places Atmos or the Atmos
 GitHub Actions integration needs to be fixed.
 
+## Status checked against Atmos 1.223.0
+
+Checked on 2026-07-18 with local `atmos version` reporting `1.223.0`.
+Docker was not available locally, so emulator-backed Terraform execution still
+needs GitHub Actions validation.
+
+Atmos PR `cloudposse/atmos#2681` explicitly fixes the native CI dogfood
+regressions for `atmos git clone` bootstrap, local backend `path` state reads,
+source-provisioned lock persistence, Aqua latest lookup fallback, and emulator
+job-container networking. That covers bugs 1, 2, 4, 7, and 8, and likely covers
+the local-backend portion of bug 3.
+
+Current status:
+
+| Bug | Status in 1.223.0 | Evidence |
+|-----|-------------------|----------|
+| 1 | Fixed upstream | `cloudposse/atmos#2681` says native CI bootstrap now allows `atmos git clone` before repo-local profile/config files exist. |
+| 2 | Fixed upstream, needs repo e2e confirmation | `cloudposse/atmos#2681` says local backend `path` state reads were fixed; local emulator test could not run without Docker. |
+| 3 | Likely fixed upstream, needs workaround-removal test | `cloudposse/atmos#2681` covers local backend `path` state reads, but this repo still uses the absolute-path workaround. |
+| 4 | Fixed upstream | `cloudposse/atmos#2681` says remote source-provisioned lock persistence was fixed. |
+| 5 | Fixed in repo configuration | GitHub repository variable `ATMOS_VERSION` is `1.223.0`. |
+| 6 | Not confirmed fixed | The `1.223.0` release notes do not call out complete `test.vars` output lookup logging. |
+| 7 | Fixed upstream | `cloudposse/atmos#2681` says Aqua latest lookup fallback was fixed. |
+| 8 | Fixed upstream, needs CI confirmation | `cloudposse/atmos#2681` says emulator containers now attach to the current GitHub job container network with aliases. |
+| 9 | Not confirmed fixed | The `1.223.0` release notes do not call out `terraform clean` preserving emulator identity resolution. |
+| 10 | Not confirmed fixed | `cloudposse/atmos#2663` implemented Terraform test job summaries, but this still needs checking in the GitHub job summary UI. |
+| 11 | Not fixed in `v1`/`v1.223.0` action refs | `cloudposse/atmos/actions/cache@v1` resolves to `v1.223.0-rc.11`, and `v1.223.0` also has the dangling `.claude/skills/atmos-gitops` symlink. |
+
 ## 1. `atmos git clone` fails before repo-local profiles are available
 
 **Observed behavior**
@@ -437,3 +465,44 @@ when `ci.summary.enabled` is true and `GITHUB_ACTIONS=true`,
 `GITHUB_STEP_SUMMARY`, whether the path was writable, and whether the summary
 was rendered. The native summary should remain sufficient without a repository
 wrapper.
+
+## 11. `cloudposse/atmos/actions/cache@v1` resolves to a broken action package
+
+**Observed behavior**
+
+GitHub Actions failed while preparing the `build` job before any repository
+commands ran:
+
+```text
+Could not find file '/home/runner/work/_actions/_temp_734e84cf-bd27-41c7-a729-573be4aebf94/_staging/atmos-1c00575b4be0393764fd202c4f0fb8efaf2411a0/.claude/skills/atmos-gitops'.
+```
+
+The workflow used:
+
+```yaml
+uses: cloudposse/atmos/actions/cache@v1
+```
+
+At the time of failure, `v1` resolved to commit
+`1c00575b4be0393764fd202c4f0fb8efaf2411a0`, the same commit as
+`v1.223.0-rc.11`. That tag contains `.claude/skills/atmos-gitops` as a symlink,
+but the symlink target `agent-skills/skills/atmos-gitops` is missing.
+
+**Why this blocks dogfooding**
+
+The Atmos cache action is part of the native CI path this repository is
+dogfooding. A broken moving `v1` ref prevents GitHub Actions from even starting
+the job, so the workflow cannot reach Atmos, Docker build, or Terraform test
+execution.
+
+**Current workaround**
+
+Pin `cloudposse/atmos/actions/cache` to `v1.223.0-rc.6`, the newest 1.223 RC
+where `agent-skills/skills/atmos-gitops` still exists.
+
+**Expected fix**
+
+Atmos should not publish or advance action tags to commits with dangling
+symlinks in the action archive. The moving `v1` ref and the final `v1.223.0`
+tag should point to an action package that GitHub Actions can download without
+missing-file errors.
