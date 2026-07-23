@@ -12,8 +12,13 @@ components:
           - "*.md"
       generate:
         "providers.tf": |
+          variable "region" {
+            type        = string
+            description = "AWS region for the fixture provider."
+          }
+
           provider "aws" {
-            region = "{{ .vars.region }}"
+            region = var.region
           }
         "ec2.tf": |
           locals {
