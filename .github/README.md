@@ -63,7 +63,7 @@ This project uses:
 
 ### Atmos Features Demonstrated
 
-This repository dogfoods the Atmos 1.223 native runtime path end to end:
+This repository dogfoods the Atmos 1.224 native runtime path end to end:
 
 - **[Native CI](https://atmos.tools/ci)** with GitHub output variables, status checks, PR comments, and **[step summaries](https://atmos.tools/ci)**.
 - **[GitHub artifact caching](https://atmos.tools/ci)** for the Atmos cache root, including toolchain installs, Terraform registry artifacts, source-provisioned workdirs, and remote import cache entries.

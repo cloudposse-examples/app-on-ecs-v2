@@ -1,7 +1,7 @@
 # Atmos Dogfood Bugs
 
 This file tracks bugs and dogfood gaps encountered while wiring this repository
-to Atmos 1.223 native CI, emulator fixtures, source-provisioned components, and
+to Atmos 1.224 native CI, emulator fixtures, source-provisioned components, and
 Terraform test variables.
 
 The point of this branch is to dogfood Atmos. Workarounds below should not be
@@ -35,7 +35,7 @@ Current status:
 | 2 | Fixed upstream, partially confirmed by repo e2e | `cloudposse/atmos#2681` says local backend `path` state reads were fixed; run `29660740150` passed with current fixture config, but the original `test.vars` `!terraform.state` workaround is still present. |
 | 3 | Likely fixed upstream, needs workaround-removal test | `cloudposse/atmos#2681` covers local backend `path` state reads, but this repo still uses the absolute-path workaround. |
 | 4 | Fixed upstream, confirmed by repo e2e | `cloudposse/atmos#2681` says remote source-provisioned lock persistence was fixed; run `29660740150` passed without the previous provider-lock persistence error. |
-| 5 | Fixed in repo configuration | GitHub repository variable `ATMOS_VERSION` is `1.223.0`. |
+| 5 | Fixed in repo configuration | GitHub repository variable `ATMOS_VERSION` is `1.224.0`. |
 | 6 | Not confirmed fixed | The `1.223.0` release notes do not call out complete `test.vars` output lookup logging. |
 | 7 | Fixed upstream, confirmed by repo e2e | `cloudposse/atmos#2681` says Aqua latest lookup fallback was fixed; run `29660740150` installed OpenTofu, TFLint, and Trivy successfully. |
 | 8 | Fixed upstream, confirmed by repo e2e | `cloudposse/atmos#2681` says emulator containers now attach to the current GitHub job container network with aliases; run `29660740150` injected `http://fixtures-aws:4566` and passed. |
@@ -208,7 +208,7 @@ The provider-lock provisioner should persist per-instance lock files to an
 existing path for git source-provisioned components, or skip that persistence
 cleanly when no writable source path exists.
 
-## 5. CI is not actually dogfooding Atmos 1.223 when `vars.ATMOS_VERSION` is old
+## 5. CI is not actually dogfooding Atmos 1.224 when `vars.ATMOS_VERSION` is old
 
 **Observed behavior**
 
@@ -219,7 +219,7 @@ Setup atmos version spec 1.216.0
 Successfully set up Atmos version 1.216.0
 ```
 
-This branch is specifically dogfooding Atmos 1.223 features, including emulator
+This branch is specifically dogfooding Atmos 1.224 features, including emulator
 fixtures and Terraform `test.vars`.
 
 **Why this blocks dogfooding**
@@ -229,8 +229,8 @@ or skip the very features this branch is meant to validate.
 
 **Current workaround**
 
-Local validation should use Atmos `1.223.0`. The repository `ATMOS_VERSION`
-variable must remain at `1.223.0` so workflows can keep using a centralized version
+Local validation should use Atmos `1.224.0`. The repository `ATMOS_VERSION`
+variable must remain at `1.224.0` so workflows can keep using a centralized version
 setting without silently downgrading the dogfood run.
 
 **Expected fix**
@@ -426,7 +426,7 @@ The raw job log included the OpenTofu test result:
 Success! 1 passed, 0 failed, 0 skipped.
 ```
 
-The current dogfood target is `ghcr.io/cloudposse/atmos:1.223.0`. Atmos PR
+The current dogfood target is `ghcr.io/cloudposse/atmos:1.224.0`. Atmos PR
 `cloudposse/atmos#2663` says it added native-CI job step summaries for
 `terraform test`: pass/fail/skip badges and a per-run results table. The
 workflow passed `GITHUB_ACTIONS`, `GITHUB_STEP_SUMMARY`, `GITHUB_OUTPUT`, and
@@ -504,8 +504,7 @@ execution.
 
 **Current workaround**
 
-Pin `cloudposse/atmos/actions/cache` to `v1.223.0-rc.6`, the newest 1.223 RC
-where `agent-skills/skills/atmos-gitops` still exists.
+Pin `cloudposse/atmos/actions/cache` to `v1.224.0`.
 
 **Expected fix**
 
