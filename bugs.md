@@ -18,10 +18,11 @@ Checked on 2026-07-27 with the 1.224.1 release binary. The repository
 `atmos validate stacks` rejects `terraform.auth` in `dev.yaml`,
 `fixtures.yaml`, `preview.yaml`, `prod.yaml`, and `staging.yaml`.
 
-Atmos 1.224.1 includes `cloudposse/atmos#2794`, which fixes the previous
-cosign `text file busy` verifier race. The new PR e2e run must still confirm
-that fix along with fixture cleanup, output logging, and Terraform test
-summaries; none are currently known failures.
+GitHub Actions run `30288486480` passed build, application tests, and the
+emulator-backed e2e test on 1.224.1. It completed `terraform clean`, fixture
+provisioning, and `terraform test --ci` with `1 passed, 0 failed, 0 skipped`.
+This clears the prior cosign `text file busy` verifier race and the remaining
+fixture-runtime concerns.
 
 ## 1. `atmos git clone` fails before repo-local profiles are available
 
