@@ -13,7 +13,7 @@ commands:
         with:
           engine: buildx
           context: app
-          dockerfile: app/Dockerfile
+          dockerfile: Dockerfile
           tags:
             - "{{ .env.APP_IMAGE }}"
           driver:
