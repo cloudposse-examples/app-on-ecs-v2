@@ -8,40 +8,20 @@ The point of this branch is to dogfood Atmos. Workarounds below should not be
 treated as final design decisions; they identify places Atmos or the Atmos
 GitHub Actions integration needs to be fixed.
 
-## Status checked against Atmos 1.223.0
+## Status checked against Atmos 1.224.1
 
-Checked on 2026-07-18 with local `atmos version` reporting `1.223.0`.
-Docker was not available locally, so emulator-backed execution was validated in
-GitHub Actions run `29660740150` after adding Docker CLI installation to the
-`e2e` job container.
+Checked on 2026-07-27 with the 1.224.1 release binary. The repository
+`ATMOS_VERSION` variable and cache-action pins target `1.224.1`.
 
-The GitHub Actions e2e run passed with the Atmos `1.223.0` image. The log showed
-`emulator aws is up at http://fixtures-aws:4566` and `Success! 1 passed, 0
-failed, 0 skipped.`, confirming the emulator endpoint is now a job-container
-network alias rather than the old unreachable `127.0.0.1:<published-port>`
-endpoint.
+## Still Failing
 
-Atmos PR `cloudposse/atmos#2681` explicitly fixes the native CI dogfood
-regressions for `atmos git clone` bootstrap, local backend `path` state reads,
-source-provisioned lock persistence, Aqua latest lookup fallback, and emulator
-job-container networking. That covers bugs 1, 2, 4, 7, and 8, and likely covers
-the local-backend portion of bug 3.
+`atmos validate stacks` rejects `terraform.auth` in `dev.yaml`,
+`fixtures.yaml`, `preview.yaml`, `prod.yaml`, and `staging.yaml`.
 
-Current status:
-
-| Bug | Status in 1.223.0 | Evidence |
-|-----|-------------------|----------|
-| 1 | Fixed upstream | `cloudposse/atmos#2681` says native CI bootstrap now allows `atmos git clone` before repo-local profile/config files exist. |
-| 2 | Fixed upstream, partially confirmed by repo e2e | `cloudposse/atmos#2681` says local backend `path` state reads were fixed; run `29660740150` passed with current fixture config, but the original `test.vars` `!terraform.state` workaround is still present. |
-| 3 | Likely fixed upstream, needs workaround-removal test | `cloudposse/atmos#2681` covers local backend `path` state reads, but this repo still uses the absolute-path workaround. |
-| 4 | Fixed upstream, confirmed by repo e2e | `cloudposse/atmos#2681` says remote source-provisioned lock persistence was fixed; run `29660740150` passed without the previous provider-lock persistence error. |
-| 5 | Fixed in repo configuration | GitHub repository variable `ATMOS_VERSION` is `1.224.0`. |
-| 6 | Not confirmed fixed | The `1.223.0` release notes do not call out complete `test.vars` output lookup logging. |
-| 7 | Fixed upstream, confirmed by repo e2e | `cloudposse/atmos#2681` says Aqua latest lookup fallback was fixed; run `29660740150` installed OpenTofu, TFLint, and Trivy successfully. |
-| 8 | Fixed upstream, confirmed by repo e2e | `cloudposse/atmos#2681` says emulator containers now attach to the current GitHub job container network with aliases; run `29660740150` injected `http://fixtures-aws:4566` and passed. |
-| 9 | Not confirmed fixed | The `1.223.0` release notes do not call out `terraform clean` preserving emulator identity resolution. |
-| 10 | Not confirmed fixed | `cloudposse/atmos#2663` implemented Terraform test job summaries, but this still needs checking in the GitHub job summary UI. |
-| 11 | Not fixed in `v1`/`v1.223.0` action refs | `cloudposse/atmos/actions/cache@v1` resolves to `v1.223.0-rc.11`, and `v1.223.0` also has the dangling `.claude/skills/atmos-gitops` symlink. |
+Atmos 1.224.1 includes `cloudposse/atmos#2794`, which fixes the previous
+cosign `text file busy` verifier race. The new PR e2e run must still confirm
+that fix along with fixture cleanup, output logging, and Terraform test
+summaries; none are currently known failures.
 
 ## 1. `atmos git clone` fails before repo-local profiles are available
 
@@ -229,8 +209,8 @@ or skip the very features this branch is meant to validate.
 
 **Current workaround**
 
-Local validation should use Atmos `1.224.0`. The repository `ATMOS_VERSION`
-variable must remain at `1.224.0` so workflows can keep using a centralized version
+Local validation should use Atmos `1.224.1`. The repository `ATMOS_VERSION`
+variable must remain at `1.224.1` so workflows can keep using a centralized version
 setting without silently downgrading the dogfood run.
 
 **Expected fix**
@@ -426,7 +406,7 @@ The raw job log included the OpenTofu test result:
 Success! 1 passed, 0 failed, 0 skipped.
 ```
 
-The current dogfood target is `ghcr.io/cloudposse/atmos:1.224.0`. Atmos PR
+The current dogfood target is `ghcr.io/cloudposse/atmos:1.224.1`. Atmos PR
 `cloudposse/atmos#2663` says it added native-CI job step summaries for
 `terraform test`: pass/fail/skip badges and a per-run results table. The
 workflow passed `GITHUB_ACTIONS`, `GITHUB_STEP_SUMMARY`, `GITHUB_OUTPUT`, and
@@ -504,7 +484,7 @@ execution.
 
 **Current workaround**
 
-Pin `cloudposse/atmos/actions/cache` to `v1.224.0`.
+Pin `cloudposse/atmos/actions/cache` to `v1.224.1`.
 
 **Expected fix**
 

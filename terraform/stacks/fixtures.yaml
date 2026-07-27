@@ -12,6 +12,9 @@ terraform:
   backend:
     local:
       path: '{{ env "PWD" }}/.context/tfstate/{{ .atmos_stack }}-{{ .atmos_component | regexp.ReplaceLiteral "\\W" "-" }}.tfstate'
+  providers:
+    aws:
+      region: "{{ .vars.region }}"
   auth:
     identities:
       local-aws:
@@ -44,11 +47,13 @@ components:
           on_failure: fail
           with:
             - type: shell
-              command: |
-                mkdir -p .context/tfstate
-                rm -f .context/tfstate/fixtures-*.tfstate*
-                rm -f .workdir/.context/tfstate/fixtures-*.tfstate*
-                rm -rf terraform/components/vpc/terraform.tfstate.d terraform/components/ecs/cluster/terraform.tfstate.d terraform/components/ecs-task/terraform.tfstate.d
+              command: mkdir -p .context/tfstate
+            - type: atmos
+              command: terraform clean vpc -s fixtures --everything --force --skip-lock-file
+            - type: atmos
+              command: terraform clean ecs/cluster -s fixtures --everything --force --skip-lock-file
+            - type: atmos
+              command: terraform clean app -s fixtures --everything --force --skip-lock-file
             - type: emulator
               component: aws
               action: up
@@ -75,11 +80,6 @@ components:
             - type: emulator
               component: aws
               action: down
-      generate:
-        "providers.tf": |
-          provider "aws" {
-            region = var.region
-          }
       vars:
         name: app
         containers:
