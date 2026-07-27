@@ -6,8 +6,7 @@ import:
 vars:
   stage: prod
 
-terraform:
-  auth:
-    identities:
-      plat-dev/terraform:
-        default: true
+auth:
+  identities:
+    plat-dev/terraform:
+      default: true

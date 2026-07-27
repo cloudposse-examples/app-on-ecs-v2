@@ -61,21 +61,18 @@ jobs:
           atmos auth env --identity plat-dev/terraform --format=github
           atmos auth login --identity plat-dev/terraform
 
-      - name: Build
-        id: build
-        uses: cloudposse/github-action-docker-build-push@v3
-        with:
-          organization: cloudposse-examples
-          repository: atmos-native-ci
-          registry: ${{ vars.ECR_REGISTRY }}
-          workdir: app
-          driver-opts: image=mirror.gcr.io/moby/buildkit:buildx-stable-1
-          cache-from: type=registry,ref=${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:buildcache
-          cache-to: mode=max,image-manifest=true,oci-mediatypes=true,type=registry,ref=${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:buildcache
+      - name: Build and push
+        env:
+          APP_IMAGE: ${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:sha-${{ github.sha }}
+          APP_IMAGE_CACHE: ${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:buildcache
+          ECR_REGISTRY: ${{ vars.ECR_REGISTRY }}
+        run: |
+          atmos build
+          atmos push
 
     outputs:
-      image: ${{ steps.build.outputs.image }}
-      tag: ${{ steps.build.outputs.tag }}
+      image: ${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci
+      tag: sha-${{ github.sha }}
 
   e2e:
     runs-on: ["ubuntu-latest"]
@@ -91,6 +88,9 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Atmos Cache
+        uses: cloudposse/atmos/actions/cache@v1.224.1
 
       - name: Run ECS component tests against AWS emulator
         env:

@@ -2,6 +2,48 @@
 # Usage: atmos up, atmos down, atmos test
 
 commands:
+  - name: build
+    description: Build the application image with the shared ECR Buildx cache
+    working_directory: !repo-root
+    steps:
+      - name: build
+        type: container
+        action: build
+        provider: docker
+        with:
+          engine: buildx
+          context: app
+          dockerfile: app/Dockerfile
+          tags:
+            - "{{ .env.APP_IMAGE }}"
+          driver:
+            name: atmos-native-ci
+            provider: docker-container
+            opts:
+              image: mirror.gcr.io/moby/buildkit:buildx-stable-1
+          cache:
+            from:
+              - type: registry
+                ref: "{{ .env.APP_IMAGE_CACHE }}"
+            to:
+              - type: registry
+                ref: "{{ .env.APP_IMAGE_CACHE }}"
+                mode: max
+
+  - name: push
+    description: Authenticate to ECR and push the application image
+    working_directory: !repo-root
+    steps:
+      - name: authenticate to ECR
+        type: shell
+        command: atmos aws ecr login --registry "{{ .env.ECR_REGISTRY }}"
+      - name: push
+        type: container
+        action: push
+        provider: docker
+        with:
+          image: "{{ .env.APP_IMAGE }}"
+
   - name: up
     description: Start the application locally using Atmos native containers
     steps:

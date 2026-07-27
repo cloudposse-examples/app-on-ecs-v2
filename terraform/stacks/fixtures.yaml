@@ -15,11 +15,6 @@ terraform:
   providers:
     aws:
       region: "{{ .vars.region }}"
-  auth:
-    identities:
-      local-aws:
-        default: true
-
 auth:
   identities:
     local-aws:

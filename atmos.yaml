@@ -137,10 +137,8 @@ ci:
     enabled: true
     # template: "custom-summary.md"
 
-  # Keep annotations disabled when results are enabled to avoid duplicate GitHub
-  # feedback for the same SARIF findings.
   annotations:
-    enabled: false
+    enabled: true
 
   results:
     enabled: true

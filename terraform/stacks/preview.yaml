@@ -6,11 +6,10 @@ import:
 vars:
   stage: preview
 
-terraform:
-  auth:
-    identities:
-      plat-dev/terraform:
-        default: true
+auth:
+  identities:
+    plat-dev/terraform:
+      default: true
   
 components:
   terraform:
