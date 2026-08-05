@@ -64,6 +64,7 @@ jobs:
           registry: ${{ vars.ECR_REGISTRY }}
           workdir: app
           driver-opts: image=mirror.gcr.io/moby/buildkit:buildx-stable-1
+          cache-to: type=gha,mode=max,ignore-error=true
 
     outputs:
       image: ${{ steps.build.outputs.image }}
