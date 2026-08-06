@@ -45,7 +45,7 @@ jobs:
         shell: bash
     steps:
       - name: Install Docker CLI
-        run: apt-get update && apt-get install -y docker.io bc
+        run: apt-get update && apt-get install -y docker-cli bc
 
       - name: Checkout
         uses: actions/checkout@v6
@@ -64,6 +64,7 @@ jobs:
           registry: ${{ vars.ECR_REGISTRY }}
           workdir: app
           driver-opts: image=mirror.gcr.io/moby/buildkit:buildx-stable-1
+          cache-to: type=gha,mode=max,ignore-error=true
 
     outputs:
       image: ${{ steps.build.outputs.image }}
