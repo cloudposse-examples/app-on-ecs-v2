@@ -13,7 +13,7 @@ Atmos stack configurations for each deployment environment.
 
 ## Fixtures
 
-The `fixtures` stack dogfoods Atmos 1.224 native features:
+The `fixtures` stack dogfoods Atmos 1.225 native features:
 
 - AWS emulator identity and `components.emulator.aws`
 - Atmos secrets declarations backed by SSM and ECS runtime secret injection
@@ -35,3 +35,10 @@ The `app` component declares `API_KEY` under `secrets.vars` so
 definition receives the SSM parameter name through `containers.app.secrets`, so
 the secret value is fetched by ECS at task startup instead of being resolved by
 Atmos into Terraform input.
+
+## Image metadata
+
+`image-metadata` is an SSM-backed Atmos store for deployment image references.
+`atmos push` writes the image that it pushed to ECR, and the `app` stack reads
+that exact reference with `!store`. Preview keys include `PR_NUMBER`; stage
+keys select the corresponding dev, staging, or prod image.

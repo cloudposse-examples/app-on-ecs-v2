@@ -1,30 +1,33 @@
 # Atmos Dogfood Bugs
 
 This file tracks bugs and dogfood gaps encountered while wiring this repository
-to Atmos 1.224 native CI, emulator fixtures, source-provisioned components, and
+to Atmos 1.225 native CI, emulator fixtures, source-provisioned components, and
 Terraform test variables.
 
 The point of this branch is to dogfood Atmos. Workarounds below should not be
 treated as final design decisions; they identify places Atmos or the Atmos
 GitHub Actions integration needs to be fixed.
 
-## Status checked against Atmos 1.224.1
+## Status checked against Atmos 1.225.0
 
-Checked on 2026-07-27 with the 1.224.1 release binary. The repository
-`ATMOS_VERSION` variable and cache-action pins target `1.224.1`.
+Checked on 2026-08-05 with `atmos --use-version=1.225.0`. The repository
+`ATMOS_VERSION` variable and cache-action pins target `1.225.0`.
 
-## Still Failing
+`atmos validate --affected --format rich` passes. It emits the existing
+`stacks.name_pattern` deprecation warning.
 
-`atmos validate stacks` rejects `terraform.auth` in `dev.yaml`,
-`fixtures.yaml`, `preview.yaml`, `prod.yaml`, and `staging.yaml`.
-
-GitHub Actions run `30288486480` passed build, application tests, and the
-emulator-backed e2e test on 1.224.1. It completed `terraform clean`, fixture
-provisioning, and `terraform test --ci` with `1 passed, 0 failed, 0 skipped`.
-This clears the prior cosign `text file busy` verifier race and the remaining
-fixture-runtime concerns.
+Still open after this revalidation: native-clone bootstrap (1), relative local
+backend roots (3), incomplete output-resolution logging (6), containerized
+emulator reachability (8), sparse passing-test detail in job summaries (10),
+native container settings in custom commands (12), and native store steps in
+custom commands (13).
 
 ## 1. `atmos git clone` fails before repo-local profiles are available
+
+**Status in 1.225.0: still failing.** On 2026-08-05, a fresh simulated GitHub
+workspace with `ATMOS_PROFILE=github`, `GITHUB_ACTIONS=true`, and `atmos git
+clone --ci --depth 0` failed before clone with `profile not found`. Setting
+`ATMOS_CI=true` did not change the result.
 
 **Observed behavior**
 
@@ -73,6 +76,13 @@ One of these should work:
 
 ## 2. `!terraform.state` cannot read source-provisioned local fixture state
 
+**Status in 1.225.0: fixed.** On 2026-08-05, an isolated copy of this
+repository changed every fixture `test.vars` lookup back from `!terraform.output`
+to `!terraform.state`. `atmos terraform test app -s fixtures --ci` completed
+with `1 passed, 0 failed, 0 skipped` and exit code 0. The historical details
+below are retained for context; the repository may now adopt the intended
+`!terraform.state` configuration separately.
+
 **Observed behavior**
 
 The fixture plan expected to use `test.vars` with `!terraform.state`, e.g.:
@@ -117,6 +127,13 @@ a local backend after `before.terraform.test` hooks apply those fixtures.
 
 ## 3. Local backend paths for source-provisioned nested components are fragile
 
+**Status in 1.225.0: still failing.** On 2026-08-05, an isolated fixture run
+using the historical relative backend path passed its Terraform test, but wrote
+`vpc` state under the repository `.context/tfstate` and `ecs/cluster` state
+under `.workdir/.context/tfstate`. The state resolver fix in issue 2 means this
+no longer prevents the test from passing, but the inconsistent backend location
+is still present.
+
 **Observed behavior**
 
 The fixture stack originally used a relative local backend path:
@@ -151,6 +168,11 @@ templating, or normalize local backend paths for source-provisioned components
 so nested component names do not change the effective state root.
 
 ## 4. Source-provisioned components report provider-lock persistence errors
+
+**Status in 1.225.0: fixed.** Two isolated full fixture runs completed source
+provisioning without `persist per-instance lock`, `Failed to complete
+multi-platform provider lock`, or generated-source error messages. The normal
+generation summary was `1 created, 3 updated`.
 
 **Observed behavior**
 
@@ -189,7 +211,12 @@ The provider-lock provisioner should persist per-instance lock files to an
 existing path for git source-provisioned components, or skip that persistence
 cleanly when no writable source path exists.
 
-## 5. CI is not actually dogfooding Atmos 1.224 when `vars.ATMOS_VERSION` is old
+## 5. CI is not actually dogfooding the selected Atmos release when `vars.ATMOS_VERSION` is old
+
+**Status in 1.225.0: resolved in this repository.** The repository Actions
+variable `ATMOS_VERSION` now equals `1.225.0`, and the workflows use it for
+their Atmos container image. This needs a GitHub Actions run after the pending
+repository changes are pushed, but the previous `1.216.0` selection is gone.
 
 **Observed behavior**
 
@@ -200,7 +227,7 @@ Setup atmos version spec 1.216.0
 Successfully set up Atmos version 1.216.0
 ```
 
-This branch is specifically dogfooding Atmos 1.224 features, including emulator
+This branch is specifically dogfooding current Atmos features, including emulator
 fixtures and Terraform `test.vars`.
 
 **Why this blocks dogfooding**
@@ -210,9 +237,10 @@ or skip the very features this branch is meant to validate.
 
 **Current workaround**
 
-Local validation should use Atmos `1.224.1`. The repository `ATMOS_VERSION`
-variable must remain at `1.224.1` so workflows can keep using a centralized version
-setting without silently downgrading the dogfood run.
+Local validation should use Atmos `1.225.0` via `--use-version=1.225.0`. The
+repository `ATMOS_VERSION` variable must remain at `1.225.0` so workflows can
+keep using a centralized version setting without silently downgrading the
+dogfood run.
 
 **Expected fix**
 
@@ -221,6 +249,11 @@ under test, or fail early with a clear message when `vars.ATMOS_VERSION` is too
 old.
 
 ## 6. `test.vars` output lookup logging is incomplete/noisy
+
+**Status in 1.225.0: still failing.** A complete fixture test with the current
+nine `!terraform.output` lookups passed, but logged only two resolutions:
+`ecs/cluster.arn` and `vpc.availability_zones`. The remaining successful output
+lookups were not represented in the log.
 
 **Observed behavior**
 
@@ -244,6 +277,11 @@ Atmos should make test-var resolution logs either complete or explicitly
 summarized, especially when resolving fixture outputs after test setup hooks.
 
 ## 7. Toolchain dependency installation can fail CI despite `GITHUB_TOKEN`
+
+**Status in 1.225.0: resolved for this repository by pinning.** The component
+now resolves `tflint 0.63.1` and `trivy 0.72.0` without a `latest` API lookup;
+both installed successfully during the isolated fixture test. This validates
+the repository mitigation, not token handling for the separate `latest` path.
 
 **Observed behavior**
 
@@ -273,6 +311,20 @@ resolution in CI or make `!unset`/component overrides work cleanly for
 `terraform.dependencies.tools`.
 
 ## 8. Emulator identity loopback endpoints fail inside GitHub job containers
+
+**Status in 1.225.0: still failing end-to-end.** On 2026-08-05, the published
+`ghcr.io/cloudposse/atmos:1.225.0` image was run with a workspace and host
+Docker socket mounted, matching the job-container shape. Atmos now injected
+`http://172.17.0.1:55064` rather than `127.0.0.1`, but the fixture apply still
+failed with `Post "http://172.17.0.1:55064/": dial tcp 172.17.0.1:55064:
+connect: connection refused`. Thus the endpoint changed but is not reachable in
+this containerized Docker topology.
+
+The current workflow's `apt-get install -y docker.io` is also insufficient for
+this image: the package is already installed but `/usr/bin/docker` is absent.
+Installing Debian's `docker-cli` makes the client available and was necessary
+to reach the endpoint reproduction. That packaging fact is separate from the
+unreachable emulator endpoint; no repository workaround is being applied here.
 
 **Observed behavior**
 
@@ -351,6 +403,12 @@ for emulator-backed Terraform tests.
 
 ## 9. `terraform clean` in fixture setup can break emulator resolution
 
+**Status in 1.225.0: fixed for the native setup used here.** The fixture test
+ran `terraform clean` for `vpc`, `ecs/cluster`, and `app`, then brought the
+emulator up, provisioned both sources, and completed successfully. The current
+commands retain `--skip-lock-file`; this result does not claim a separate
+validation of cleanup without that supported flag.
+
 **Observed behavior**
 
 Replacing the fixture setup's manual cleanup with:
@@ -392,6 +450,12 @@ resolution in the same `before.terraform.test` hook, or Atmos should document
 the cleanup boundary required before `emulator up`.
 
 ## 10. `terraform test --ci` summary is too sparse on passing runs
+
+**Status in 1.225.0: still incomplete.** With `GITHUB_ACTIONS=true`, writable
+`GITHUB_STEP_SUMMARY`, and `GITHUB_OUTPUT`, a passing fixture test did write a
+job summary. It contains the Atmos badge, total/passed badges, and a local
+reproduction command, but no `.tftest.hcl` run name or assertion/result table.
+The job-summary write itself works; the promised per-run detail remains absent.
 
 **Observed behavior**
 
@@ -456,6 +520,11 @@ wrapper.
 
 ## 11. `cloudposse/atmos/actions/cache@v1` resolves to a broken action package
 
+**Status in 1.225.0: resolved for this repository by precise pinning.** Every
+workflow uses `cloudposse/atmos/actions/cache@v1.225.0`; the action manifest at
+that exact tag is available through GitHub. This does not assert that the
+moving `v1` tag has been repaired.
+
 **Observed behavior**
 
 GitHub Actions failed while preparing the `build` job before any repository
@@ -485,7 +554,7 @@ execution.
 
 **Current workaround**
 
-Pin `cloudposse/atmos/actions/cache` to `v1.224.1`.
+Pin `cloudposse/atmos/actions/cache` to `v1.225.0`.
 
 **Expected fix**
 
@@ -493,3 +562,139 @@ Atmos should not publish or advance action tags to commits with dangling
 symlinks in the action archive. The moving `v1` ref and the final `v1.223.0`
 tag should point to an action package that GitHub Actions can download without
 missing-file errors.
+
+## 12. Native container settings are ignored in custom commands ([Atmos #2876](https://github.com/cloudposse/atmos/issues/2876))
+
+**Status in 1.225.0: still failing.** The reproduction was repeated on
+2026-08-05 by invoking the downloaded 1.225.0 binary directly (not through the
+`--use-version` wrapper), with a logging `docker` shim. It again emitted only
+`docker info` and `docker build -f Dockerfile .`.
+
+**Observed behavior**
+
+Atmos 1.225.0 parses the native container configuration in
+`.atmos.d/commands.yaml`, but does not apply it when executing `atmos build`.
+The build command specifies Buildx, an `app` context, an ECR registry cache,
+an explicit `docker-container` driver, and an image tag:
+
+```yaml
+type: container
+action: build
+provider: docker
+with:
+  engine: buildx
+  context: app
+  dockerfile: Dockerfile
+  tags: ["{{ .env.APP_IMAGE }}"]
+  driver:
+    name: atmos-native-ci
+    provider: docker-container
+  cache:
+    from: [{type: registry, ref: "{{ .env.APP_IMAGE_CACHE }}"}]
+```
+
+With a logging `docker` shim first on `PATH`, this invocation:
+
+```bash
+APP_IMAGE=example.invalid/demo:sha-test \
+APP_IMAGE_CACHE=example.invalid/demo:buildcache \
+ECR_REGISTRY=example.invalid \
+atmos --use-version=1.225.0 build
+```
+
+emits only:
+
+```text
+docker info
+docker build -f Dockerfile .
+```
+
+It drops `engine`, `context`, `tags`, `driver`, and both cache settings without
+an error or warning.
+
+**Why this blocks dogfooding**
+
+The feature-branch workflow calls `atmos build` and `atmos push`. The emitted
+command uses Docker's default builder, cannot use the intended ECR Buildx
+cache, builds from the wrong context, and does not apply the deterministic image
+tag. This is a silent correctness failure, not merely a cache miss.
+
+**Expected fix**
+
+The configuration above is the intended public contract. `atmos build` must
+execute this typed custom-command container step directly; the repository must
+not need a workflow wrapper, a handwritten Docker command, or a different
+configuration shape to obtain Buildx and registry caching.
+
+Atmos should execute custom-command container steps through the same native
+runner as workflow container steps, preserving the complete `with:` build
+configuration. Add an integration test that uses this exact command shape and
+asserts the resulting Docker argv includes `buildx`, `--builder`,
+`--cache-from`, `--cache-to`, the tag, and the configured Dockerfile and build
+context.
+
+## 13. `type: store` is rejected in custom commands
+
+**Status on `ref:main` (`a134752`): failing.** On 2026-08-19, the native
+`type: store` custom-command step documented by Atmos was added to this
+repository's `atmos push` command. Both the direct installed `ref:main` binary
+and `atmos --use-version=ref:main` reject the configuration during validation.
+The repository now uses the user-directed AWS CLI write while this Atmos defect
+is fixed.
+
+**Intended configuration**
+
+The repository builds and pushes a deterministic ECR image and then records
+the image reference in the non-secret SSM-backed `image-metadata` store. The
+deployment stack reads the stored reference with `!store`; image information is
+therefore not passed from the build job to the deployment job through GitHub
+Actions outputs or `APP_IMAGE` deployment environment variables.
+
+```yaml
+commands:
+  - name: push
+    steps:
+      - type: container
+        action: push
+        with:
+          image: "{{ .env.APP_IMAGE }}"
+      - type: store
+        action: write
+        with:
+          store: image-metadata
+          key: "{{ .env.IMAGE_STORE_KEY }}"
+          value: "{{ .env.APP_IMAGE }}"
+          stack: "{{ .env.IMAGE_STORE_STACK }}"
+          component: app
+```
+
+This is the documented custom-command syntax for the native
+[`store` step](https://atmos.tools/workflows/steps/type/store).
+
+**Observed behavior**
+
+```bash
+/Users/erik/.cache/atmos/toolchain/bin/cloudposse/atmos/sha-a134752/atmos \
+  validate --affected --format rich
+```
+
+fails before it can validate stacks or workflows:
+
+```text
+'commands[1].steps' invalid workflow control step: failed to decode task with-block at index 2: invalid workflow control step: container action: write does not accept a with: block
+```
+
+The error identifies the step as `container action: write` even though its
+declared type is `store`. The same failure occurs for a standalone
+`record-image` custom command consisting only of the `type: store` step.
+
+**Expected fix**
+
+Custom commands and workflows must dispatch `type: store` to the native store
+step decoder and executor. It must accept `store`, `key`, `value`, `stack`, and
+`component` in `with:`, then write the value through the configured store
+backend.
+
+Add an integration test that loads a custom command through the normal CLI
+configuration path, runs a `type: store` write against a credential-free test
+store, and reads the exact value back through the store API and `!store`.

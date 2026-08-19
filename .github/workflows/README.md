@@ -33,6 +33,13 @@ To preserve queue throughput while keeping a human gate on production, staging/p
 
 Triggering on `release: published` is great for "deploy the new version," but useless for "redeploy v1.2.3 to prod because v1.2.4 broke." `release.yaml` accepts a `tag` input (any image tag in ECR) and an `environment` input (`staging`, `prod`, or `both`), so you can roll back, hotfix, or selectively redeploy without cutting a new release. The `promote` job is skipped on dispatch (the image already exists at that tag).
 
+### Image metadata flows through Atmos stores
+
+`atmos push` publishes the immutable ECR image and records its full image
+reference in the `image-metadata` SSM store with `aws ssm put-parameter`. The
+app stack resolves that reference with `!store`, so every deployment consumes
+the image selected for its stack (and, for previews, its PR number).
+
 ### Trade-off: queue bypass
 
 If a maintainer force-merges a PR (bypassing the queue), `main-branch.yaml` will only draft a release — it will not auto-deploy to dev. This is a deliberate trade-off: the queue is the single source of truth for dev deploys, and bypassing the queue means accepting that you are skipping the deploy gate too. Use `release.yaml` workflow_dispatch to redeploy dev (or any environment) if needed.
@@ -45,6 +52,7 @@ sequenceDiagram
     participant GH as GitHub
     participant GA as GitHub Actions
     participant ECR as AWS ECR
+    participant SSM as AWS SSM
     participant Atmos as Atmos CLI
     participant TF as OpenTofu
     participant ECS as AWS ECS
@@ -52,6 +60,7 @@ sequenceDiagram
     Dev->>GH: Open PR
     GH->>GA: Trigger feature-branch workflow (pull_request)
     GA->>ECR: Build & push Docker image (sha-xxx)
+    GA->>SSM: Record preview image reference
     GA->>GA: Run Go tests
     GA->>Atmos: atmos terraform test app -s fixtures --ci
     Atmos->>TF: Apply VPC/ECS fixtures against AWS emulator
@@ -61,9 +70,11 @@ sequenceDiagram
     GH->>GH: Place PR on queue ref (gh-readonly-queue/main/...)
     GH->>GA: Trigger feature-branch workflow (merge_group)
     GA->>ECR: Build & push Docker image
+    GA->>SSM: Record dev image reference
     GA->>GA: Run Go tests
     GA->>Atmos: atmos terraform test app -s fixtures --ci
     GA->>Atmos: atmos terraform deploy app -s dev
+    Atmos->>SSM: Resolve dev image reference
     Atmos->>TF: tofu apply
     TF->>ECS: Update dev ECS service
     ECS-->>GA: Deployment complete
@@ -81,6 +92,7 @@ sequenceDiagram
     participant GH as GitHub
     participant GA as GitHub Actions
     participant ECR as AWS ECR
+    participant SSM as AWS SSM
     participant Atmos as Atmos CLI
     participant TF as OpenTofu
     participant ECS as AWS ECS
@@ -88,8 +100,10 @@ sequenceDiagram
     Dev->>GH: Open PR with `deploy` label
     GH->>GA: Trigger feature-branch workflow (pull_request)
     GA->>ECR: Build & push Docker image
+    GA->>SSM: Record preview image reference
     GA->>GA: Run Go tests
     GA->>Atmos: atmos terraform deploy app -s preview
+    Atmos->>SSM: Resolve preview image reference
     Atmos->>TF: tofu apply
     TF->>ECS: Create preview ECS service
     ECS-->>GA: Preview URL
@@ -109,6 +123,7 @@ sequenceDiagram
     participant GH as GitHub
     participant GA as GitHub Actions
     participant ECR as AWS ECR
+    participant SSM as AWS SSM
     participant Atmos as Atmos CLI
     participant TF as OpenTofu
     participant ECS as AWS ECS
@@ -116,11 +131,15 @@ sequenceDiagram
     Dev->>GH: Publish release (v1.2.3)
     GH->>GA: Trigger release workflow (release)
     GA->>ECR: Promote image tag (sha-xxx → v1.2.3)
+    GA->>SSM: Record staging image reference
     GA->>Atmos: atmos terraform deploy app -s staging
+    Atmos->>SSM: Resolve staging image reference
     Atmos->>TF: tofu apply
     TF->>ECS: Update staging ECS service
     ECS-->>GA: Staging deployed
+    GA->>SSM: Record prod image reference
     GA->>Atmos: atmos terraform deploy app -s prod
+    Atmos->>SSM: Resolve prod image reference
     Atmos->>TF: tofu apply
     TF->>ECS: Update prod ECS service
     ECS-->>GA: Production deployed
@@ -133,6 +152,7 @@ sequenceDiagram
     participant Op as Operator
     participant GH as GitHub
     participant GA as GitHub Actions
+    participant SSM as AWS SSM
     participant Atmos as Atmos CLI
     participant TF as OpenTofu
     participant ECS as AWS ECS
@@ -140,7 +160,9 @@ sequenceDiagram
     Op->>GH: Run release workflow (workflow_dispatch)<br/>tag=1.2.3, environment=prod
     GH->>GA: Trigger release workflow
     Note over GA: promote job skipped (image already in ECR)
-    GA->>Atmos: atmos terraform deploy app -s prod<br/>APP_IMAGE=...:1.2.3
+    GA->>SSM: Record prod image reference (1.2.3)
+    GA->>Atmos: atmos terraform deploy app -s prod
+    Atmos->>SSM: Resolve prod image reference
     Atmos->>TF: tofu apply
     TF->>ECS: Update prod ECS service to v1.2.3
     ECS-->>GA: Rollback complete

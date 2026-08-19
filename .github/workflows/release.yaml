@@ -48,7 +48,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Atmos Cache
-        uses: cloudposse/atmos/actions/cache@v1.224.1
+        uses: cloudposse/atmos/actions/cache@v1.225.0
 
       - name: AWS Auth
         run: |
@@ -88,14 +88,25 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Atmos Cache
-        uses: cloudposse/atmos/actions/cache@v1.224.1
+        uses: cloudposse/atmos/actions/cache@v1.225.0
+
+      - name: Install AWS CLI
+        run: apt-get update && apt-get install -y awscli
+
+      - name: AWS Auth
+        run: |
+          atmos auth env --identity plat-dev/terraform --format=github
+          atmos auth login --identity plat-dev/terraform
 
       - name: Deploy ECS Service
         id: deploy
         env:
           ATMOS_PROFILE: github
           APP_IMAGE: "${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:${{ github.event.release.tag_name || inputs.tag }}"
+          IMAGE_STORE_STACK: staging
+          IMAGE_STORE_KEY: image-staging
         run: |
+          atmos record-image
           atmos terraform deploy app -s staging
 
   deploy-production:
@@ -121,12 +132,23 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Atmos Cache
-        uses: cloudposse/atmos/actions/cache@v1.224.1
+        uses: cloudposse/atmos/actions/cache@v1.225.0
+
+      - name: Install AWS CLI
+        run: apt-get update && apt-get install -y awscli
+
+      - name: AWS Auth
+        run: |
+          atmos auth env --identity plat-dev/terraform --format=github
+          atmos auth login --identity plat-dev/terraform
 
       - name: Deploy ECS Service
         id: deploy
         env:
           ATMOS_PROFILE: github
           APP_IMAGE: "${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:${{ github.event.release.tag_name || inputs.tag }}"
+          IMAGE_STORE_STACK: prod
+          IMAGE_STORE_KEY: image-prod
         run: |
+          atmos record-image
           atmos terraform deploy app -s prod

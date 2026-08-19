@@ -31,7 +31,7 @@ commands:
                 mode: max
 
   - name: push
-    description: Authenticate to ECR and push the application image
+    description: Authenticate to ECR, push the application image, and record it for deployment
     working_directory: !repo-root
     steps:
       - name: authenticate to ECR
@@ -43,6 +43,31 @@ commands:
         provider: docker
         with:
           image: "{{ .env.APP_IMAGE }}"
+      - name: record deployment image
+        type: shell
+        command: |
+          aws ssm put-parameter \
+            --region us-east-2 \
+            --name "/atmos/app-on-ecs-v2/images/$IMAGE_STORE_STACK/app/$IMAGE_STORE_KEY" \
+            --type String \
+            --value "\"$APP_IMAGE\"" \
+            --overwrite \
+            --no-cli-pager
+
+  - name: record-image
+    description: Record an already-published application image for deployment
+    working_directory: !repo-root
+    steps:
+      - name: record deployment image
+        type: shell
+        command: |
+          aws ssm put-parameter \
+            --region us-east-2 \
+            --name "/atmos/app-on-ecs-v2/images/$IMAGE_STORE_STACK/app/$IMAGE_STORE_KEY" \
+            --type String \
+            --value "\"$APP_IMAGE\"" \
+            --overwrite \
+            --no-cli-pager
 
   - name: up
     description: Start the application locally using Atmos native containers

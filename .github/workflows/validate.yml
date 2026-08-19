@@ -58,6 +58,6 @@ jobs:
       with:
         atmos-version: ${{ vars.ATMOS_VERSION }}
     - name: Atmos Cache
-      uses: cloudposse/atmos/actions/cache@v1.224.1
+      uses: cloudposse/atmos/actions/cache@v1.225.0
     - name: Validate affected configuration
       run: atmos validate --affected --format rich

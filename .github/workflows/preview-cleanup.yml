@@ -28,10 +28,11 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Atmos Cache
-        uses: cloudposse/atmos/actions/cache@v1.224.1
+        uses: cloudposse/atmos/actions/cache@v1.225.0
 
       - name: Destroy ECS Service
         env:
           ATMOS_PROFILE: github
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           atmos terraform destroy app -s preview -auto-approve

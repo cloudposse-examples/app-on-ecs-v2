@@ -21,7 +21,7 @@ A simple Go web server designed to demonstrate container deployment strategies a
 
 ## Local Development
 
-Run the application locally using Atmos 1.224 native containers:
+Run the application locally using Atmos 1.225 native containers:
 
 ```bash
 # From repository root

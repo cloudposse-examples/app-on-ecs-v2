@@ -61,6 +61,12 @@ stacks:
   name_pattern: "{stage}"
 
 stores:
+  image-metadata:
+    kind: aws/ssm
+    options:
+      region: us-east-2
+      prefix: /atmos/app-on-ecs-v2/images
+
   secrets/ssm:
     kind: aws/ssm
     secret: true
