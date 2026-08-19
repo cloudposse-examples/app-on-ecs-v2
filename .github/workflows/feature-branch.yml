@@ -67,8 +67,9 @@ jobs:
           APP_IMAGE_CACHE: ${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:buildcache
           ECR_REGISTRY: ${{ vars.ECR_REGISTRY }}
         run: |
-          atmos app build
-          atmos app push --store-stack "${{ github.event_name == 'pull_request' && 'preview' || 'dev' }}" --store-key "image-${{ github.event.pull_request.number || 'dev' }}"
+          # 1.225.0 silently drops custom-command Buildx settings; ref:main preserves them.
+          atmos --use-version=ref:main app build
+          atmos --use-version=ref:main app push --store-stack "${{ github.event_name == 'pull_request' && 'preview' || 'dev' }}" --store-key "image-${{ github.event.pull_request.number || 'dev' }}"
 
   e2e:
     runs-on: ["ubuntu-latest"]
