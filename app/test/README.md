@@ -6,13 +6,13 @@ Local development testing using Atmos native containers.
 
 ```bash
 # Start the app locally
-atmos up
+atmos app up
 
 # Stream logs
-atmos logs
+atmos app logs
 
 # Stop the app
-atmos down
+atmos app down
 ```
 
 The app will be available at http://localhost:8080.

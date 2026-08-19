@@ -1,92 +1,113 @@
-# Custom Atmos commands for local development
-# Usage: atmos up, atmos down, atmos test
+# Application lifecycle commands.
+# Usage: atmos app <build|push|record|up|down|logs|test>
 
 commands:
-  - name: build
-    description: Build the application image with the shared ECR Buildx cache
-    working_directory: !repo-root
-    steps:
+  - name: app
+    description: Build, publish, deploy, and operate the example application
+    commands:
       - name: build
-        type: container
-        action: build
-        provider: docker
-        with:
-          engine: buildx
-          context: app
-          dockerfile: Dockerfile
-          tags:
-            - "{{ .env.APP_IMAGE }}"
-          driver:
-            name: atmos-native-ci
-            provider: docker-container
-            opts:
-              image: mirror.gcr.io/moby/buildkit:buildx-stable-1
-          cache:
-            from:
-              - type: registry
-                ref: "{{ .env.APP_IMAGE_CACHE }}"
-            to:
-              - type: registry
-                ref: "{{ .env.APP_IMAGE_CACHE }}"
-                mode: max
+        description: Build the application image with the shared ECR Buildx cache
+        working_directory: !repo-root
+        steps:
+          - name: build
+            type: container
+            action: build
+            provider: docker
+            with:
+              engine: buildx
+              context: app
+              dockerfile: Dockerfile
+              tags:
+                - "{{ .env.APP_IMAGE }}"
+              driver:
+                name: atmos-native-ci
+                provider: docker-container
+                opts:
+                  image: mirror.gcr.io/moby/buildkit:buildx-stable-1
+              cache:
+                from:
+                  - type: registry
+                    ref: "{{ .env.APP_IMAGE_CACHE }}"
+                to:
+                  - type: registry
+                    ref: "{{ .env.APP_IMAGE_CACHE }}"
+                    mode: max
 
-  - name: push
-    description: Authenticate to ECR, push the application image, and record it for deployment
-    working_directory: !repo-root
-    steps:
-      - name: authenticate to ECR
-        type: shell
-        command: atmos aws ecr login --registry "{{ .env.ECR_REGISTRY }}"
       - name: push
-        type: container
-        action: push
-        provider: docker
-        with:
-          image: "{{ .env.APP_IMAGE }}"
-      - name: record deployment image
-        type: shell
-        command: |
-          aws ssm put-parameter \
-            --region us-east-2 \
-            --name "/atmos/app-on-ecs-v2/images/$IMAGE_STORE_STACK/app/$IMAGE_STORE_KEY" \
-            --type String \
-            --value "\"$APP_IMAGE\"" \
-            --overwrite \
-            --no-cli-pager
+        description: Authenticate to ECR, push the application image, and record it for deployment
+        working_directory: !repo-root
+        flags:
+          - name: store-stack
+            type: string
+            description: Stack namespace for the deployment image metadata
+            default: dev
+          - name: store-key
+            type: string
+            description: Image metadata key within the selected stack
+            default: image-dev
+        steps:
+          - name: authenticate to ECR
+            type: shell
+            command: atmos aws ecr login --registry "{{ .env.ECR_REGISTRY }}"
+          - name: push
+            type: container
+            action: push
+            provider: docker
+            with:
+              image: "{{ .env.APP_IMAGE }}"
+          - name: record deployment image
+            type: shell
+            command: |
+              aws ssm put-parameter \
+                --region us-east-2 \
+                --name "/atmos/app-on-ecs-v2/images/{{ index .Flags "store-stack" }}/app/{{ index .Flags "store-key" }}" \
+                --type String \
+                --value '"{{ .env.APP_IMAGE }}"' \
+                --overwrite \
+                --no-cli-pager
 
-  - name: record-image
-    description: Record an already-published application image for deployment
-    working_directory: !repo-root
-    steps:
-      - name: record deployment image
-        type: shell
-        command: |
-          aws ssm put-parameter \
-            --region us-east-2 \
-            --name "/atmos/app-on-ecs-v2/images/$IMAGE_STORE_STACK/app/$IMAGE_STORE_KEY" \
-            --type String \
-            --value "\"$APP_IMAGE\"" \
-            --overwrite \
-            --no-cli-pager
+      - name: record
+        description: Record an already-published application image for deployment
+        working_directory: !repo-root
+        flags:
+          - name: store-stack
+            type: string
+            description: Stack namespace for the deployment image metadata
+            default: dev
+          - name: store-key
+            type: string
+            description: Image metadata key within the selected stack
+            default: image-dev
+        steps:
+          - name: record deployment image
+            type: shell
+            command: |
+              aws ssm put-parameter \
+                --region us-east-2 \
+                --name "/atmos/app-on-ecs-v2/images/{{ index .Flags "store-stack" }}/app/{{ index .Flags "store-key" }}" \
+                --type String \
+                --value '"{{ .env.APP_IMAGE }}"' \
+                --overwrite \
+                --no-cli-pager
 
-  - name: up
-    description: Start the application locally using Atmos native containers
-    steps:
-      - echo "Starting app at http://localhost:8080 (dashboard at http://localhost:8080/dashboard)"
-      - atmos container up app -s local
+      - name: up
+        description: Start the application locally using Atmos native containers
+        steps:
+          - echo "Starting app at http://localhost:8080 (dashboard at http://localhost:8080/dashboard)"
+          - atmos container up app -s local
 
-  - name: down
-    description: Stop the local Atmos native container application
-    steps:
-      - atmos container down app -s local
+      - name: down
+        description: Stop the local application container
+        steps:
+          - atmos container down app -s local
 
-  - name: logs
-    description: Stream local application container logs
-    steps:
-      - atmos container logs app -s local
+      - name: logs
+        description: Stream local application container logs
+        steps:
+          - atmos container logs app -s local
 
-  - name: test
-    description: Run Go tests
-    working_directory: app
-    steps:
-      - go test -v ./...
+      - name: test
+        description: Run Go tests
+        working_directory: app
+        steps:
+          - go test -v ./...

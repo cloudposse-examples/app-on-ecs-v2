@@ -25,9 +25,9 @@ Run the application locally using Atmos 1.225 native containers:
 
 ```bash
 # From repository root
-atmos up    # Builds and runs on http://localhost:8080
-atmos logs  # Stream container logs
-atmos down  # Stop the app
+atmos app up    # Builds and runs on http://localhost:8080
+atmos app logs  # Stream container logs
+atmos app down  # Stop the app
 ```
 
 The local container component is defined in `terraform/stacks/local.yaml`.

@@ -103,10 +103,8 @@ jobs:
         env:
           ATMOS_PROFILE: github
           APP_IMAGE: "${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:${{ github.event.release.tag_name || inputs.tag }}"
-          IMAGE_STORE_STACK: staging
-          IMAGE_STORE_KEY: image-staging
         run: |
-          atmos record-image
+          atmos app record --store-stack staging --store-key image-staging
           atmos terraform deploy app -s staging
 
   deploy-production:
@@ -147,8 +145,6 @@ jobs:
         env:
           ATMOS_PROFILE: github
           APP_IMAGE: "${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:${{ github.event.release.tag_name || inputs.tag }}"
-          IMAGE_STORE_STACK: prod
-          IMAGE_STORE_KEY: image-prod
         run: |
-          atmos record-image
+          atmos app record --store-stack prod --store-key image-prod
           atmos terraform deploy app -s prod

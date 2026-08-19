@@ -573,7 +573,7 @@ missing-file errors.
 **Observed behavior**
 
 Atmos 1.225.0 parses the native container configuration in
-`.atmos.d/commands.yaml`, but does not apply it when executing `atmos build`.
+`.atmos.d/commands.yaml`, but does not apply it when executing `atmos app build`.
 The build command specifies Buildx, an `app` context, an ECR registry cache,
 an explicit `docker-container` driver, and an image tag:
 
@@ -599,7 +599,7 @@ With a logging `docker` shim first on `PATH`, this invocation:
 APP_IMAGE=example.invalid/demo:sha-test \
 APP_IMAGE_CACHE=example.invalid/demo:buildcache \
 ECR_REGISTRY=example.invalid \
-atmos --use-version=1.225.0 build
+atmos --use-version=1.225.0 app build
 ```
 
 emits only:
@@ -614,14 +614,14 @@ an error or warning.
 
 **Why this blocks dogfooding**
 
-The feature-branch workflow calls `atmos build` and `atmos push`. The emitted
+The feature-branch workflow calls `atmos app build` and `atmos app push`. The emitted
 command uses Docker's default builder, cannot use the intended ECR Buildx
 cache, builds from the wrong context, and does not apply the deterministic image
 tag. This is a silent correctness failure, not merely a cache miss.
 
 **Expected fix**
 
-The configuration above is the intended public contract. `atmos build` must
+The configuration above is the intended public contract. `atmos app build` must
 execute this typed custom-command container step directly; the repository must
 not need a workflow wrapper, a handwritten Docker command, or a different
 configuration shape to obtain Buildx and registry caching.
@@ -637,7 +637,7 @@ context.
 
 **Status on `ref:main` (`a134752`): failing.** On 2026-08-19, the native
 `type: store` custom-command step documented by Atmos was added to this
-repository's `atmos push` command. Both the direct installed `ref:main` binary
+repository's `atmos app push` command. Both the direct installed `ref:main` binary
 and `atmos --use-version=ref:main` reject the configuration during validation.
 The repository now uses the user-directed AWS CLI write while this Atmos defect
 is fixed.
@@ -652,20 +652,29 @@ Actions outputs or `APP_IMAGE` deployment environment variables.
 
 ```yaml
 commands:
-  - name: push
-    steps:
-      - type: container
-        action: push
-        with:
-          image: "{{ .env.APP_IMAGE }}"
-      - type: store
-        action: write
-        with:
-          store: image-metadata
-          key: "{{ .env.IMAGE_STORE_KEY }}"
-          value: "{{ .env.APP_IMAGE }}"
-          stack: "{{ .env.IMAGE_STORE_STACK }}"
-          component: app
+  - name: app
+    commands:
+      - name: push
+        flags:
+          - name: store-stack
+            type: string
+            default: dev
+          - name: store-key
+            type: string
+            default: image-dev
+        steps:
+          - type: container
+            action: push
+            with:
+              image: "{{ .env.APP_IMAGE }}"
+          - type: store
+            action: write
+            with:
+              store: image-metadata
+              key: '{{ index .Flags "store-key" }}'
+              value: "{{ .env.APP_IMAGE }}"
+              stack: '{{ index .Flags "store-stack" }}'
+              component: app
 ```
 
 This is the documented custom-command syntax for the native

@@ -39,6 +39,6 @@ Atmos into Terraform input.
 ## Image metadata
 
 `image-metadata` is an SSM-backed Atmos store for deployment image references.
-`atmos push` writes the image that it pushed to ECR, and the `app` stack reads
+`atmos app push` writes the image that it pushed to ECR, and the `app` stack reads
 that exact reference with `!store`. Preview keys include `PR_NUMBER`; stage
 keys select the corresponding dev, staging, or prod image.

@@ -6,9 +6,9 @@ Example containerized Go web application deployed to AWS ECS Fargate using Atmos
 
 ```bash
 # Local development
-atmos up                                # Start app locally with Atmos native containers
-atmos down                              # Stop local app
-atmos logs                              # Stream local container logs
+atmos app up                            # Start app locally with Atmos native containers
+atmos app down                          # Stop local app
+atmos app logs                          # Stream local container logs
 
 # Terraform component E2E against the local AWS emulator
 atmos terraform test app -s fixtures
