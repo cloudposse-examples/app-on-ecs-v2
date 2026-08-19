@@ -9,6 +9,9 @@ commands:
         description: Build the application image with the shared ECR Buildx cache
         working_directory: !repo-root
         steps:
+          - name: authenticate to ECR for Buildx cache
+            type: shell
+            command: atmos aws ecr login --registry "{{ .env.ECR_REGISTRY }}"
           - name: build
             type: container
             action: build
