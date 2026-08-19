@@ -1,4 +1,4 @@
 atmos 1.225.0
-opentofu 1.10.7
+opentofu 1.12.5
 tflint latest
 trivy latest

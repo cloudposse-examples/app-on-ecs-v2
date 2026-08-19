@@ -39,6 +39,6 @@ terraform:
   dependencies:
     tools:
       # Use a specific terraform version from toolchain
-      opentofu: "1.10.7"
+      opentofu: "1.12.5"
       tflint: "0.63.1"
       trivy: "0.72.0"
