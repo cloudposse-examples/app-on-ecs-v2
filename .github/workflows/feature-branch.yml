@@ -63,6 +63,7 @@ jobs:
 
       - name: Build and push
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APP_IMAGE: ${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:sha-${{ github.sha }}
           APP_IMAGE_CACHE: ${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:buildcache
           ECR_REGISTRY: ${{ vars.ECR_REGISTRY }}
