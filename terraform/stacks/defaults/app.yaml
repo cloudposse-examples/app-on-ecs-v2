@@ -50,7 +50,7 @@ components:
               - containerPort: 8080
             environment:
               - name: COLOR
-                value: blue
+                value: green
             secrets:
               - name: API_KEY
                 valueFrom: "/atmos/app-on-ecs-v2/secrets/{{ .atmos_stack }}/{{ .atmos_component }}/API_KEY"

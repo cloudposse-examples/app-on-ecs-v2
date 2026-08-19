@@ -48,7 +48,7 @@ jobs:
         shell: bash
     steps:
       - name: Install Docker CLI
-        run: apt-get update && apt-get install -y docker.io bc awscli
+        run: apt-get update && apt-get install -y docker-cli bc awscli
 
       - name: Checkout
         uses: actions/checkout@v6
@@ -82,7 +82,7 @@ jobs:
         shell: bash
     steps:
       - name: Install Docker CLI
-        run: apt-get update && apt-get install -y docker.io
+        run: apt-get update && apt-get install -y docker-cli
 
       - name: Checkout
         uses: actions/checkout@v6
