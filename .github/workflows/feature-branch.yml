@@ -50,6 +50,11 @@ jobs:
       - name: Install Docker CLI
         run: apt-get update && apt-get install -y docker-cli bc awscli
 
+      - name: Install Docker Buildx
+        uses: docker/setup-buildx-action@v4
+        with:
+          version: v0.36.1
+
       - name: Checkout
         uses: actions/checkout@v6
 

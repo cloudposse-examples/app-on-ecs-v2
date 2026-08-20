@@ -711,3 +711,34 @@ backend.
 Add an integration test that loads a custom command through the normal CLI
 configuration path, runs a `type: store` write against a credential-free test
 store, and reads the exact value back through the store API and `!store`.
+
+## 14. `bake.vars` requires a Buildx version newer than Debian's packaged plugin
+
+**Status in 1.226.0: diagnosed.** The native `bake.vars` configuration is
+correctly passed through by Atmos as `docker buildx bake --var NAME=value`, but
+the `docker-buildx` 0.13.1 package installed by Debian Trixie does not implement
+that option.
+
+**Observed behavior**
+
+The build job installed `docker-cli` from Debian, which selected
+`docker-buildx` 0.13.1. Its native build then failed before building an image:
+
+```text
+container runtime operation failed: docker build failed: exit status 125:
+unknown flag: --var
+```
+
+**Repository fix**
+
+The build job now installs Buildx 0.36.1 through
+`docker/setup-buildx-action@v4` before running `atmos app build`. This preserves
+the intended `bake.vars`, Buildx driver, registry cache, and separate native
+`app push` step; it does not replace the Atmos container step with shell Docker
+commands.
+
+**Expected Atmos improvement**
+
+Atmos should document the Buildx minimum version for `bake.vars` or preflight
+the installed Buildx capability and report a clear compatibility error instead
+of forwarding an unsupported `--var` flag to Docker.
