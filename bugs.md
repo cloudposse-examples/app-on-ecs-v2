@@ -8,10 +8,14 @@ The point of this branch is to dogfood Atmos. Workarounds below should not be
 treated as final design decisions; they identify places Atmos or the Atmos
 GitHub Actions integration needs to be fixed.
 
+## Current release selection
+
+As of 2026-08-19, the repository `ATMOS_VERSION` variable, cache-action pins,
+and local tool version target `1.226.0`.
+
 ## Status checked against Atmos 1.225.0
 
-Checked on 2026-08-05 with `atmos --use-version=1.225.0`. The repository
-`ATMOS_VERSION` variable and cache-action pins target `1.225.0`.
+Checked on 2026-08-05 with `atmos --use-version=1.225.0`.
 
 `atmos validate --affected --format rich` passes. It emits the existing
 `stacks.name_pattern` deprecation warning.
@@ -213,8 +217,8 @@ cleanly when no writable source path exists.
 
 ## 5. CI is not actually dogfooding the selected Atmos release when `vars.ATMOS_VERSION` is old
 
-**Status in 1.225.0: resolved in this repository.** The repository Actions
-variable `ATMOS_VERSION` now equals `1.225.0`, and the workflows use it for
+**Status in 1.226.0: resolved in this repository.** The repository Actions
+variable `ATMOS_VERSION` now equals `1.226.0`, and the workflows use it for
 their Atmos container image. This needs a GitHub Actions run after the pending
 repository changes are pushed, but the previous `1.216.0` selection is gone.
 
@@ -237,8 +241,8 @@ or skip the very features this branch is meant to validate.
 
 **Current workaround**
 
-Local validation should use Atmos `1.225.0` via `--use-version=1.225.0`. The
-repository `ATMOS_VERSION` variable must remain at `1.225.0` so workflows can
+Local validation should use Atmos `1.226.0` via `--use-version=1.226.0`. The
+repository `ATMOS_VERSION` variable must remain at `1.226.0` so workflows can
 keep using a centralized version setting without silently downgrading the
 dogfood run.
 
@@ -520,8 +524,8 @@ wrapper.
 
 ## 11. `cloudposse/atmos/actions/cache@v1` resolves to a broken action package
 
-**Status in 1.225.0: resolved for this repository by precise pinning.** Every
-workflow uses `cloudposse/atmos/actions/cache@v1.225.0`; the action manifest at
+**Status in 1.226.0: resolved for this repository by precise pinning.** Every
+workflow uses `cloudposse/atmos/actions/cache@v1.226.0`; the action manifest at
 that exact tag is available through GitHub. This does not assert that the
 moving `v1` tag has been repaired.
 
@@ -554,7 +558,7 @@ execution.
 
 **Current workaround**
 
-Pin `cloudposse/atmos/actions/cache` to `v1.225.0`.
+Pin `cloudposse/atmos/actions/cache` to `v1.226.0`.
 
 **Expected fix**
 

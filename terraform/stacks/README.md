@@ -13,7 +13,7 @@ Atmos stack configurations for each deployment environment.
 
 ## Fixtures
 
-The `fixtures` stack dogfoods Atmos 1.225 native features:
+The `fixtures` stack dogfoods Atmos 1.226 native features:
 
 - AWS emulator identity and `components.emulator.aws`
 - Atmos secrets declarations backed by SSM and ECS runtime secret injection

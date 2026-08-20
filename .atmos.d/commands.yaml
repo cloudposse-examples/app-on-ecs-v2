@@ -8,20 +8,35 @@ commands:
       - name: build
         description: Build the application image with the shared ECR Buildx cache
         working_directory: !repo-root
+        flags:
+          - name: registry
+            type: string
+            description: ECR registry that hosts the application image
+            default: 068007702576.dkr.ecr.us-east-2.amazonaws.com
+          - name: image
+            type: string
+            description: Fully qualified application image tag to build
+            default: 068007702576.dkr.ecr.us-east-2.amazonaws.com/cloudposse-examples/atmos-native-ci:latest
+          - name: image-cache
+            type: string
+            description: Fully qualified Buildx registry cache reference
+            default: 068007702576.dkr.ecr.us-east-2.amazonaws.com/cloudposse-examples/atmos-native-ci:buildcache
         steps:
           - name: authenticate to ECR for Buildx cache
             type: shell
-            command: atmos aws ecr login --registry "{{ .env.ECR_REGISTRY }}"
+            command: atmos aws ecr login --registry "{{ index .Flags "registry" }}"
           - name: build
             type: container
             action: build
             provider: docker
             with:
               engine: buildx
-              context: app
-              dockerfile: Dockerfile
-              tags:
-                - "{{ .env.APP_IMAGE }}"
+              bake:
+                file: app/docker-bake.hcl
+                target: app
+                load: true
+                vars:
+                  APP_IMAGE: '{{ index .Flags "image" }}'
               driver:
                 name: atmos-native-ci
                 provider: docker-container
@@ -30,16 +45,24 @@ commands:
               cache:
                 from:
                   - type: registry
-                    ref: "{{ .env.APP_IMAGE_CACHE }}"
+                    ref: '{{ index .Flags "image-cache" }}'
                 to:
                   - type: registry
-                    ref: "{{ .env.APP_IMAGE_CACHE }}"
+                    ref: '{{ index .Flags "image-cache" }}'
                     mode: max
 
       - name: push
         description: Authenticate to ECR, push the application image, and record it for deployment
         working_directory: !repo-root
         flags:
+          - name: registry
+            type: string
+            description: ECR registry that hosts the application image
+            default: 068007702576.dkr.ecr.us-east-2.amazonaws.com
+          - name: image
+            type: string
+            description: Fully qualified application image tag to push and record
+            default: 068007702576.dkr.ecr.us-east-2.amazonaws.com/cloudposse-examples/atmos-native-ci:latest
           - name: store-stack
             type: string
             description: Stack namespace for the deployment image metadata
@@ -51,13 +74,13 @@ commands:
         steps:
           - name: authenticate to ECR
             type: shell
-            command: atmos aws ecr login --registry "{{ .env.ECR_REGISTRY }}"
+            command: atmos aws ecr login --registry "{{ index .Flags "registry" }}"
           - name: push
             type: container
             action: push
             provider: docker
             with:
-              image: "{{ .env.APP_IMAGE }}"
+              image: '{{ index .Flags "image" }}'
           - name: record deployment image
             type: shell
             command: |
@@ -65,7 +88,7 @@ commands:
                 --region us-east-2 \
                 --name "/atmos/app-on-ecs-v2/images/{{ index .Flags "store-stack" }}/app/{{ index .Flags "store-key" }}" \
                 --type String \
-                --value '"{{ .env.APP_IMAGE }}"' \
+                --value '"{{ index .Flags "image" }}"' \
                 --overwrite \
                 --no-cli-pager
 
@@ -73,6 +96,10 @@ commands:
         description: Record an already-published application image for deployment
         working_directory: !repo-root
         flags:
+          - name: image
+            type: string
+            description: Fully qualified already-published application image tag to record
+            default: 068007702576.dkr.ecr.us-east-2.amazonaws.com/cloudposse-examples/atmos-native-ci:latest
           - name: store-stack
             type: string
             description: Stack namespace for the deployment image metadata
@@ -89,7 +116,7 @@ commands:
                 --region us-east-2 \
                 --name "/atmos/app-on-ecs-v2/images/{{ index .Flags "store-stack" }}/app/{{ index .Flags "store-key" }}" \
                 --type String \
-                --value '"{{ .env.APP_IMAGE }}"' \
+                --value '"{{ index .Flags "image" }}"' \
                 --overwrite \
                 --no-cli-pager
 
