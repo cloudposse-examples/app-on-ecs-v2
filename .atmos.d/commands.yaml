@@ -63,14 +63,15 @@ commands:
             type: string
             description: Fully qualified application image tag to push and record
             default: 068007702576.dkr.ecr.us-east-2.amazonaws.com/cloudposse-examples/atmos-native-ci:latest
-          - name: store-stack
+          - name: stack
             type: string
-            description: Stack namespace for the deployment image metadata
+            description: Atmos stack to receive the deployment image
             default: dev
+            semantic_type: stack
           - name: store-key
             type: string
             description: Image metadata key within the selected stack
-            default: image-dev
+            default: image
         steps:
           - name: authenticate to ECR
             type: shell
@@ -86,7 +87,7 @@ commands:
             command: |
               aws ssm put-parameter \
                 --region us-east-2 \
-                --name "/atmos/app-on-ecs-v2/images/{{ index .Flags "store-stack" }}/app/{{ index .Flags "store-key" }}" \
+                --name "/atmos/app-on-ecs-v2/images/{{ index .Flags "stack" }}/app/{{ index .Flags "store-key" }}" \
                 --type String \
                 --value '"{{ index .Flags "image" }}"' \
                 --overwrite \
@@ -100,21 +101,22 @@ commands:
             type: string
             description: Fully qualified already-published application image tag to record
             default: 068007702576.dkr.ecr.us-east-2.amazonaws.com/cloudposse-examples/atmos-native-ci:latest
-          - name: store-stack
+          - name: stack
             type: string
-            description: Stack namespace for the deployment image metadata
+            description: Atmos stack to receive the deployment image
             default: dev
+            semantic_type: stack
           - name: store-key
             type: string
             description: Image metadata key within the selected stack
-            default: image-dev
+            default: image
         steps:
           - name: record deployment image
             type: shell
             command: |
               aws ssm put-parameter \
                 --region us-east-2 \
-                --name "/atmos/app-on-ecs-v2/images/{{ index .Flags "store-stack" }}/app/{{ index .Flags "store-key" }}" \
+                --name "/atmos/app-on-ecs-v2/images/{{ index .Flags "stack" }}/app/{{ index .Flags "store-key" }}" \
                 --type String \
                 --value '"{{ index .Flags "image" }}"' \
                 --overwrite \

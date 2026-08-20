@@ -75,8 +75,8 @@ jobs:
           atmos app push \
             --registry "${{ vars.ECR_REGISTRY }}" \
             --image "${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:sha-${{ github.sha }}" \
-            --store-stack "${{ github.event_name == 'pull_request' && 'preview' || 'dev' }}" \
-            --store-key "image-${{ github.event.pull_request.number || 'dev' }}"
+            --stack "${{ github.event_name == 'pull_request' && 'preview' || 'dev' }}" \
+            --store-key "${{ github.event_name == 'pull_request' && format('image-{0}', github.event.pull_request.number) || 'image' }}"
 
   e2e:
     runs-on: ["ubuntu-latest"]

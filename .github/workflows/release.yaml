@@ -105,8 +105,8 @@ jobs:
         run: |
           atmos app record \
             --image "${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:${{ github.event.release.tag_name || inputs.tag }}" \
-            --store-stack staging \
-            --store-key image-staging
+            --stack staging \
+            --store-key image
           atmos terraform deploy app -s staging
 
   deploy-production:
@@ -149,6 +149,6 @@ jobs:
         run: |
           atmos app record \
             --image "${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:${{ github.event.release.tag_name || inputs.tag }}" \
-            --store-stack prod \
-            --store-key image-prod
+            --stack prod \
+            --store-key image
           atmos terraform deploy app -s prod

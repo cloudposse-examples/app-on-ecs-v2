@@ -44,7 +44,7 @@ components:
         base_domains: !terraform.state ecs/cluster .records
         containers:
           app:
-            image: !store image-metadata {{ .atmos_stack }} app image-{{ env "PR_NUMBER" | default .vars.stage }}
+            image: !store image-metadata {{ .atmos_stack }} app {{ if env "PR_NUMBER" }}image-{{ env "PR_NUMBER" }}{{ else }}image{{ end }}
             memory: 256
             portMappings:
               - containerPort: 8080

@@ -184,7 +184,7 @@ Container configuration is defined in `terraform/stacks/defaults/app.yaml` and c
 │   ├── Dockerfile             # Multi-stage container build
 │   ├── public/                # Static HTML assets
 │   ├── rootfs/                # Container filesystem overlay
-│   └── test/                  # Local development notes
+│   └── test/                  # Local test harness
 ├── atmos.yaml                 # Atmos configuration
 ├── .atmos.d/                  # Atmos custom commands
 ├── terraform/
