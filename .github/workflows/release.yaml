@@ -26,6 +26,7 @@ permissions:
   id-token: write
   contents: read
   checks: write
+  security-events: write
 
 env:
   ATMOS_PROFILE: github
@@ -45,6 +46,9 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Atmos Cache
+        uses: cloudposse/atmos/actions/cache@v1.226.0
 
       - name: AWS Auth
         run: |
@@ -83,12 +87,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Atmos Cache
+        uses: cloudposse/atmos/actions/cache@v1.226.0
+
+      - name: Install AWS CLI
+        run: apt-get update && apt-get install -y awscli
+
+      - name: AWS Auth
+        run: |
+          atmos auth env --identity plat-dev/terraform --format=github
+          atmos auth login --identity plat-dev/terraform
+
       - name: Deploy ECS Service
         id: deploy
         env:
           ATMOS_PROFILE: github
-          APP_IMAGE: "${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:${{ github.event.release.tag_name || inputs.tag }}"
         run: |
+          atmos app record \
+            --image "${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:${{ github.event.release.tag_name || inputs.tag }}" \
+            --stack staging \
+            --store-key image
           atmos terraform deploy app -s staging
 
   deploy-production:
@@ -113,10 +131,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Atmos Cache
+        uses: cloudposse/atmos/actions/cache@v1.226.0
+
+      - name: Install AWS CLI
+        run: apt-get update && apt-get install -y awscli
+
+      - name: AWS Auth
+        run: |
+          atmos auth env --identity plat-dev/terraform --format=github
+          atmos auth login --identity plat-dev/terraform
+
       - name: Deploy ECS Service
         id: deploy
         env:
           ATMOS_PROFILE: github
-          APP_IMAGE: "${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:${{ github.event.release.tag_name || inputs.tag }}"
         run: |
+          atmos app record \
+            --image "${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:${{ github.event.release.tag_name || inputs.tag }}" \
+            --stack prod \
+            --store-key image
           atmos terraform deploy app -s prod

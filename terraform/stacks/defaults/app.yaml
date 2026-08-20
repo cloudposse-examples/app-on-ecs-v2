@@ -3,6 +3,39 @@ components:
     app:
       metadata:
         component: ecs-task
+        terraform_workspace: "atmos-native-ci-{{ .atmos_stack }}-{{ .atmos_component }}"
+      secrets:
+        vars:
+          API_KEY:
+            description: "Example application API key injected into ECS from SSM Parameter Store."
+            store: secrets/ssm
+            required: true
+      hooks:
+        fmt:
+          events:
+            - before.terraform.init
+            - before.terraform.plan
+          kind: command
+          command: sh
+          args:
+            - -ec
+            - tofu fmt -check -recursive "$ATMOS_COMPONENT_PATH"
+          on_failure: fail
+        trivy:
+          events:
+            - after.terraform.plan
+          kind: trivy
+          on_failure: fail
+        tflint:
+          events:
+            - before.terraform.plan
+            - before.terraform.test
+          kind: command
+          command: sh
+          args:
+            - -ec
+            - tflint --chdir "$ATMOS_COMPONENT_PATH" --init && tflint --chdir "$ATMOS_COMPONENT_PATH"
+          on_failure: fail
       vars:
         name: app
         ecs: !terraform.state ecs/cluster .
@@ -11,13 +44,16 @@ components:
         base_domains: !terraform.state ecs/cluster .records
         containers:
           app:
-            image: !env APP_IMAGE 068007702576.dkr.ecr.us-east-2.amazonaws.com/cloudposse-examples/atmos-native-ci:sha-2ee4206
+            image: !store image-metadata {{ .atmos_stack }} app {{ if env "PR_NUMBER" }}image-{{ env "PR_NUMBER" }}{{ else }}image{{ end }}
             memory: 256
             portMappings:
               - containerPort: 8080
             environment:
               - name: COLOR
                 value: green
+            secrets:
+              - name: API_KEY
+                valueFrom: "/atmos/app-on-ecs-v2/secrets/{{ .atmos_stack }}/{{ .atmos_component }}/API_KEY"
             healthCheck:
               command: ["CMD-SHELL", "curl -f http://localhost:8080/healthz || exit 1"]
               interval: 5
@@ -44,4 +80,3 @@ components:
             low:
               threshold: 10
               period: 60
-

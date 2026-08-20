@@ -1,0 +1,114 @@
+import:
+  - _default.yaml
+  - fixtures/vpc.yaml
+  - fixtures/ecs-cluster.yaml
+
+vars:
+  stage: fixtures
+  region: us-east-2
+
+terraform:
+  backend_type: local
+  backend:
+    local:
+      path: '{{ env "PWD" }}/.context/tfstate/{{ .atmos_stack }}-{{ .atmos_component | regexp.ReplaceLiteral "\\W" "-" }}.tfstate'
+  providers:
+    aws:
+      region: "{{ .vars.region }}"
+auth:
+  identities:
+    local-aws:
+      kind: aws/emulator
+      emulator: aws
+      default: true
+
+components:
+  emulator:
+    aws:
+      driver: floci/aws
+      region: "{{ .vars.region }}"
+      ephemeral: true
+
+  terraform:
+    app:
+      metadata:
+        component: ecs-task
+        terraform_workspace: default
+      hooks:
+        fixtures-up:
+          events:
+            - before.terraform.test
+          kind: steps
+          on_failure: fail
+          with:
+            - type: shell
+              command: mkdir -p .context/tfstate
+            - type: atmos
+              command: terraform clean vpc -s fixtures --everything --force --skip-lock-file
+            - type: atmos
+              command: terraform clean ecs/cluster -s fixtures --everything --force --skip-lock-file
+            - type: atmos
+              command: terraform clean app -s fixtures --everything --force --skip-lock-file
+            - type: emulator
+              component: aws
+              action: up
+              ephemeral: true
+            - type: atmos
+              command: terraform source pull vpc -s fixtures --force
+            - type: atmos
+              command: terraform source pull ecs/cluster -s fixtures --force
+            - type: atmos
+              command: terraform apply vpc -s fixtures -auto-approve
+            - type: atmos
+              command: terraform apply ecs/cluster -s fixtures -auto-approve
+        fixtures-down:
+          events:
+            - after.terraform.test
+          kind: steps
+          when: always
+          on_failure: warn
+          with:
+            - type: atmos
+              command: terraform destroy ecs/cluster -s fixtures -auto-approve
+            - type: atmos
+              command: terraform destroy vpc -s fixtures -auto-approve
+            - type: emulator
+              component: aws
+              action: down
+      vars:
+        name: app
+        containers:
+          app:
+            image: public.ecr.aws/docker/library/nginx:alpine
+            memory: 256
+            portMappings:
+              - containerPort: 80
+            environment:
+              - name: COLOR
+                value: blue
+        url_path: /dashboard
+        service:
+          capacity_provider_strategy_enabled: false
+          load_balancer_enabled: false
+          wait_for_steady_state: false
+        autoscaling:
+          enabled: false
+        task_policy_arns: []
+        base_domains:
+          public: "*.local.test"
+          private: "*.local.test"
+      test:
+        vars:
+          ecs:
+            cluster_arn: !terraform.output ecs/cluster fixtures arn
+            cluster_name: !terraform.output ecs/cluster fixtures name
+          vpc:
+            availability_zones: !terraform.output vpc fixtures availability_zones
+            az_private_subnets_map: !terraform.output vpc fixtures az_private_subnets_map
+            az_public_subnets_map: !terraform.output vpc fixtures az_public_subnets_map
+            flow_log_destination: null
+            flow_log_id: []
+            private_subnet_ids: !terraform.output vpc fixtures private_subnet_ids
+            public_subnet_ids: !terraform.output vpc fixtures public_subnet_ids
+            vpc_cidr: !terraform.output vpc fixtures vpc_cidr
+            vpc_id: !terraform.output vpc fixtures vpc_id

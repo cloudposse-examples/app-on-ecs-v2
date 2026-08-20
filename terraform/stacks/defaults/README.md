@@ -4,6 +4,41 @@ Shared configuration imported by all environment stacks.
 
 - `app.yaml` - Default container and task configuration for the application
 
+## Secrets
+
+The shared app defaults declare an Atmos secret named `API_KEY` and pass it to
+ECS using the task definition `secrets` field:
+
+```yaml
+components:
+  terraform:
+    app:
+      secrets:
+        vars:
+          API_KEY:
+            store: secrets/ssm
+            required: true
+      vars:
+        containers:
+          app:
+            secrets:
+              - name: API_KEY
+                valueFrom: /atmos/app-on-ecs-v2/secrets/<stack>/app/API_KEY
+```
+
+This is intentional: do not use `!secret` for values that ECS should inject at
+runtime. `!secret` resolves the plaintext value before Terraform runs. For ECS,
+keep the value in SSM Parameter Store and pass only the parameter name through
+Terraform.
+
+Useful Atmos commands:
+
+```bash
+atmos secret list --stack=dev --component=app
+atmos secret init --stack=dev --component=app
+atmos secret set API_KEY --stack=dev --component=app
+```
+
 ## Brownfield Configuration
 
 If you're not using Cloud Posse's reference architecture or don't want to use `!terraform.state` lookups, you can hardcode your infrastructure values directly. Replace the `!terraform.state` calls in `app.yaml` with your own values.

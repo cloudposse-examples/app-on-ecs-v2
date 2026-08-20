@@ -1,22 +1,145 @@
-# Custom Atmos commands for local development
-# Usage: atmos up, atmos down, atmos test
+# Application lifecycle commands.
+# Usage: atmos app <build|push|record|up|down|logs|test>
 
 commands:
-  - name: up
-    description: Start the application locally using Podman Compose
-    working_directory: app/test
-    steps:
-      - echo "Starting app at http://localhost:8080 (dashboard at http://localhost:8080/dashboard)"
-      - podman compose up --build
+  - name: app
+    description: Build, publish, deploy, and operate the example application
+    commands:
+      - name: build
+        description: Build the application image with the shared ECR Buildx cache
+        working_directory: !repo-root
+        flags:
+          - name: registry
+            type: string
+            description: ECR registry that hosts the application image
+            default: 068007702576.dkr.ecr.us-east-2.amazonaws.com
+          - name: image
+            type: string
+            description: Fully qualified application image tag to build
+            default: 068007702576.dkr.ecr.us-east-2.amazonaws.com/cloudposse-examples/atmos-native-ci:latest
+          - name: image-cache
+            type: string
+            description: Fully qualified Buildx registry cache reference
+            default: 068007702576.dkr.ecr.us-east-2.amazonaws.com/cloudposse-examples/atmos-native-ci:buildcache
+        steps:
+          - name: authenticate to ECR for Buildx cache
+            type: shell
+            command: atmos aws ecr login --registry "{{ index .Flags "registry" }}"
+          - name: build
+            type: container
+            action: build
+            provider: docker
+            with:
+              engine: buildx
+              bake:
+                file: app/docker-bake.hcl
+                target: app
+                load: true
+                vars:
+                  APP_IMAGE: '{{ index .Flags "image" }}'
+              driver:
+                name: atmos-native-ci
+                provider: docker-container
+                opts:
+                  image: mirror.gcr.io/moby/buildkit:buildx-stable-1
+              cache:
+                from:
+                  - type: registry
+                    ref: '{{ index .Flags "image-cache" }}'
+                to:
+                  - type: registry
+                    ref: '{{ index .Flags "image-cache" }}'
+                    mode: max
 
-  - name: down
-    description: Stop the local Podman Compose application
-    working_directory: app/test
-    steps:
-      - podman compose down
+      - name: push
+        description: Authenticate to ECR, push the application image, and record it for deployment
+        working_directory: !repo-root
+        flags:
+          - name: registry
+            type: string
+            description: ECR registry that hosts the application image
+            default: 068007702576.dkr.ecr.us-east-2.amazonaws.com
+          - name: image
+            type: string
+            description: Fully qualified application image tag to push and record
+            default: 068007702576.dkr.ecr.us-east-2.amazonaws.com/cloudposse-examples/atmos-native-ci:latest
+          - name: stack
+            type: string
+            description: Atmos stack to receive the deployment image
+            default: dev
+            semantic_type: stack
+          - name: store-key
+            type: string
+            description: Image metadata key within the selected stack
+            default: image
+        steps:
+          - name: authenticate to ECR
+            type: shell
+            command: atmos aws ecr login --registry "{{ index .Flags "registry" }}"
+          - name: push
+            type: container
+            action: push
+            provider: docker
+            with:
+              image: '{{ index .Flags "image" }}'
+          - name: record deployment image
+            type: shell
+            command: |
+              aws ssm put-parameter \
+                --region us-east-2 \
+                --name "/atmos/app-on-ecs-v2/images/{{ index .Flags "stack" }}/app/{{ index .Flags "store-key" }}" \
+                --type String \
+                --value '"{{ index .Flags "image" }}"' \
+                --overwrite \
+                --no-cli-pager
 
-  - name: test
-    description: Run Go tests
-    working_directory: app
-    steps:
-      - go test -v ./...
+      - name: record
+        description: Record an already-published application image for deployment
+        working_directory: !repo-root
+        flags:
+          - name: image
+            type: string
+            description: Fully qualified already-published application image tag to record
+            default: 068007702576.dkr.ecr.us-east-2.amazonaws.com/cloudposse-examples/atmos-native-ci:latest
+          - name: stack
+            type: string
+            description: Atmos stack to receive the deployment image
+            default: dev
+            semantic_type: stack
+          - name: store-key
+            type: string
+            description: Image metadata key within the selected stack
+            default: image
+        steps:
+          - name: record deployment image
+            type: shell
+            command: |
+              aws ssm put-parameter \
+                --region us-east-2 \
+                --name "/atmos/app-on-ecs-v2/images/{{ index .Flags "stack" }}/app/{{ index .Flags "store-key" }}" \
+                --type String \
+                --value '"{{ index .Flags "image" }}"' \
+                --overwrite \
+                --no-cli-pager
+
+      - name: up
+        description: Start the application locally using Atmos native containers
+        steps:
+          - echo "Starting app at http://localhost:8080 (dashboard at http://localhost:8080/dashboard)"
+          - atmos container up app -s local
+
+      - name: down
+        description: Stop the local application container
+        steps:
+          - atmos container down app -s local
+
+      - name: logs
+        description: Stream local application container logs
+        steps:
+          - atmos container logs app -s local
+
+      - name: test
+        description: Run Go tests
+        working_directory: app
+        steps:
+          - go test -v ./...

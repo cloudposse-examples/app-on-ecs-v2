@@ -154,6 +154,10 @@ variable "service" {
     deployment_minimum_healthy_percent = optional(number, null)
     force_new_deployment               = optional(bool, false)
     enable_execute_command             = optional(bool, false)
+    capacity_provider_strategy_enabled = optional(bool, true)
+    launch_type                        = optional(string, null)
+    load_balancer_enabled              = optional(bool, true)
+    wait_for_steady_state              = optional(bool, true)
   })
   description = "Configuration for service parameters."
   default     = {}
@@ -161,15 +165,16 @@ variable "service" {
 
 variable "autoscaling" {
   type = object({
-    min_capacity          = optional(number, 1)
-    max_capacity          = optional(number, 2)
-    scale_up_cooldown     = optional(number, 60)
-    scale_up_step_adjustments   = optional(object({
+    enabled           = optional(bool, true)
+    min_capacity      = optional(number, 1)
+    max_capacity      = optional(number, 2)
+    scale_up_cooldown = optional(number, 60)
+    scale_up_step_adjustments = optional(object({
       metric_interval_lower_bound = optional(number, 0)
       metric_interval_upper_bound = optional(number, null)
       scaling_adjustment          = optional(number, 1)
     }), {})
-    scale_down_cooldown   = optional(number, 300)
+    scale_down_cooldown = optional(number, 300)
     scale_down_step_adjustments = optional(object({
       metric_interval_lower_bound = optional(number, null)
       metric_interval_upper_bound = optional(number, 0)
@@ -177,14 +182,14 @@ variable "autoscaling" {
     }), {})
     rule = optional(object({
       low = optional(object({
-        threshold = optional(number, 20)
+        threshold          = optional(number, 20)
         evaluation_periods = optional(number, 1)
-        period = optional(number, 300)
+        period             = optional(number, 300)
       }), {})
       high = optional(object({
-        threshold = optional(number, 80)
+        threshold          = optional(number, 80)
         evaluation_periods = optional(number, 1)
-        period = optional(number, 300)
+        period             = optional(number, 300)
       }), {})
     }), {})
   })
@@ -194,8 +199,8 @@ variable "autoscaling" {
 
 variable "task" {
   type = object({
-    cpu      = optional(number, 256)
-    memory   = optional(number, 512)
+    cpu                    = optional(number, 256)
+    memory                 = optional(number, 512)
     ephemeral_storage_size = optional(number, 0)
     volumes = optional(map(object({
       host_path = optional(string, null)
@@ -213,6 +218,15 @@ variable "task" {
   })
   description = "Specifications for ECS task resources and storage options."
   default     = {}
+}
+
+variable "task_policy_arns" {
+  type        = list(string)
+  description = "The IAM policy ARNs to attach to the ECS task IAM role"
+  default = [
+    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
+    "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
+  ]
 }
 
 variable "ecs" {
@@ -259,14 +273,4 @@ variable "base_domains" {
     private : string
   })
   description = "The base domain to use for the service"
-}
-
-variable "github_repo_name" {
-  type = string
-  description = "The name of the GitHub repository"
-}
-
-variable "deps_stage" {
-  type = string
-  description = "The stage of the dependencies"
 }

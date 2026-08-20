@@ -3,7 +3,6 @@ vars:
   tenant: plat
   region: us-east-2
   environment: ue2
-  github_repo_name: atmos-native-ci
 
 terraform:
   # Configure context
@@ -40,4 +39,6 @@ terraform:
   dependencies:
     tools:
       # Use a specific terraform version from toolchain
-      opentofu: "1.6.0"
+      opentofu: "1.12.5"
+      tflint: "0.63.1"
+      trivy: "0.72.0"

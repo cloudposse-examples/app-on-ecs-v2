@@ -61,13 +61,31 @@ This project uses:
 - **AWS ECR** - Container image registry
 - **AWS EFS** - Persistent file storage (optional)
 
+### Atmos Features Demonstrated
+
+This repository dogfoods the Atmos 1.225 native runtime path end to end:
+
+- **[Native CI](https://atmos.tools/ci)** with GitHub output variables, status checks, PR comments, and **[step summaries](https://atmos.tools/ci)**.
+- **[GitHub artifact caching](https://atmos.tools/ci)** for the Atmos cache root, including toolchain installs, Terraform registry artifacts, source-provisioned workdirs, and remote import cache entries.
+- **[Provider and module caching](https://atmos.tools/cli/commands/terraform/cache)** through the Terraform registry cache proxy.
+- **[Toolchain installation](https://atmos.tools/cli/commands/toolchain/usage)** for OpenTofu, TFLint, and Trivy from `.tool-versions` and stack `dependencies.tools`.
+- **[Source provisioning](https://atmos.tools/examples/source-provisioning)** and **[workdir provisioning](https://atmos.tools/stacks/components/provision/workdir)** for remote VPC and ECS cluster fixture components.
+- **[Remote stack imports](https://atmos.tools/stacks/imports)** for shared account-map compatibility configuration.
+- **[Generate blocks](https://atmos.tools/stacks/generate)** for provider files, emulator-friendly fixture overrides, and compatibility shims.
+- **[Lifecycle hooks](https://atmos.tools/stacks/hooks)**, including ordered fixture setup/teardown, a built-in Trivy hook, and a custom command hook for TFLint.
+- **[SAST reporting](https://atmos.tools/stacks/hooks)** with Trivy SARIF flowing into **[GitHub Code Scanning results](https://atmos.tools/ci)**.
+- **[Custom commands](https://atmos.tools/cli/configuration/commands)** for local developer workflows.
+- **[Native container components](https://atmos.tools/cli/commands/container/usage)** for local application runs without Docker Compose.
+- **[Terraform tests](https://atmos.tools/cli/commands/terraform/test)** with **[fixtures and cloud emulators](https://atmos.tools/changelog/local-terraform-tests-with-emulators)**.
+- **[Emulator components](https://atmos.tools/stacks/components/emulator)** for local and CI AWS-compatible tests without cloud credentials.
+
 
 
 ## Usage
 
 ### Local Development
 
-Run the application locally using Podman Compose:
+Run the application locally using Atmos native containers:
 
 ```bash
 # Start the app locally (builds and runs on http://localhost:8080)
@@ -166,7 +184,7 @@ Container configuration is defined in `terraform/stacks/defaults/app.yaml` and c
 │   ├── Dockerfile             # Multi-stage container build
 │   ├── public/                # Static HTML assets
 │   ├── rootfs/                # Container filesystem overlay
-│   └── test/                  # Local development (docker-compose)
+│   └── test/                  # Local test harness
 ├── atmos.yaml                 # Atmos configuration
 ├── .atmos.d/                  # Atmos custom commands
 ├── terraform/
@@ -204,7 +222,7 @@ atmos docs generate readme
 Check out these related projects.
 
 - [Atmos](https://atmos.tools) - Universal Tool for DevOps and Cloud Automation
-- [terraform-aws-components](https://github.com/cloudposse/terraform-aws-components) - Opinionated, self-contained Terraform root modules for Cloud Posse reference architecture
+- [aws-vpc component](https://github.com/cloudposse-terraform-components/aws-vpc) - Cloud Posse Terraform component for provisioning VPCs and subnets
 
 
 

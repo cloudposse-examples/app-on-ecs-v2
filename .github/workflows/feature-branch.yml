@@ -14,9 +14,12 @@ permissions:
   id-token: write
   contents: read
   statuses: write
+  checks: write
+  pull-requests: write
+  security-events: write
 
 env:
-  ATMOS_PROFILE: github 
+  ATMOS_PROFILE: github
 
 jobs:
   test:
@@ -45,33 +48,62 @@ jobs:
         shell: bash
     steps:
       - name: Install Docker CLI
-        run: apt-get update && apt-get install -y docker-cli bc
+        run: apt-get update && apt-get install -y docker-cli bc awscli
+
+      - name: Install Docker Buildx
+        uses: docker/setup-buildx-action@v4
+        with:
+          version: v0.36.1
 
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Atmos Cache
+        uses: cloudposse/atmos/actions/cache@v1.226.0
 
       - name: AWS Auth
         run: |
           atmos auth env --identity plat-dev/terraform --format=github
           atmos auth login --identity plat-dev/terraform
 
-      - name: Build
-        id: build
-        uses: cloudposse/github-action-docker-build-push@v3
-        with:
-          organization: cloudposse-examples
-          repository: atmos-native-ci
-          registry: ${{ vars.ECR_REGISTRY }}
-          workdir: app
-          driver-opts: image=mirror.gcr.io/moby/buildkit:buildx-stable-1
-          cache-to: type=gha,mode=max,ignore-error=true
+      - name: Build and push
+        run: |
+          atmos app build \
+            --registry "${{ vars.ECR_REGISTRY }}" \
+            --image "${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:sha-${{ github.sha }}" \
+            --image-cache "${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:buildcache"
+          atmos app push \
+            --registry "${{ vars.ECR_REGISTRY }}" \
+            --image "${{ vars.ECR_REGISTRY }}/cloudposse-examples/atmos-native-ci:sha-${{ github.sha }}" \
+            --stack "${{ github.event_name == 'pull_request' && 'preview' || 'dev' }}" \
+            --store-key "${{ github.event_name == 'pull_request' && format('image-{0}', github.event.pull_request.number) || 'image' }}"
 
-    outputs:
-      image: ${{ steps.build.outputs.image }}
-      tag: ${{ steps.build.outputs.tag }}
+  e2e:
+    runs-on: ["ubuntu-latest"]
+    name: e2e
+    container:
+      image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Install Docker CLI
+        run: apt-get update && apt-get install -y docker-cli
+
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Atmos Cache
+        uses: cloudposse/atmos/actions/cache@v1.226.0
+
+      - name: Run ECS component tests against AWS emulator
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          atmos terraform test app -s fixtures --ci
 
   deploy-preview:
-    needs: [ test, build ]
+    needs: [ test, build, e2e ]
     runs-on: ["ubuntu-latest"]
     container:
       image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
@@ -89,18 +121,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Atmos Cache
+        uses: cloudposse/atmos/actions/cache@v1.226.0
+
       - name: Deploy ECS Service
         id: deploy
         env:
           ATMOS_PROFILE: github
-          APP_IMAGE: "${{ needs.build.outputs.image }}:${{ needs.build.outputs.tag }}"
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           atmos terraform deploy app -s preview
 
   deploy-dev:
-    needs: [ test, build ]
+    needs: [ test, build, e2e ]
     runs-on: ["ubuntu-latest"]
     container:
       image: ghcr.io/cloudposse/atmos:${{ vars.ATMOS_VERSION }}
@@ -116,10 +150,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Atmos Cache
+        uses: cloudposse/atmos/actions/cache@v1.226.0
+
       - name: Deploy ECS Service
         id: deploy
         env:
           ATMOS_PROFILE: github
-          APP_IMAGE: "${{ needs.build.outputs.image }}:${{ needs.build.outputs.tag }}"
         run: |
           atmos terraform deploy app -s dev

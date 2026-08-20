@@ -1,0 +1,83 @@
+components:
+  terraform:
+    ecs/cluster:
+      metadata:
+        terraform_workspace: default
+      source:
+        uri: github.com/cloudposse/terraform-aws-ecs-cluster.git
+        version: v2.0.1
+        included_paths:
+          - "*.tf"
+        excluded_paths:
+          - "*.md"
+      generate:
+        "providers.tf": |
+          variable "region" {
+            type        = string
+            description = "AWS region for the fixture provider."
+          }
+
+          provider "aws" {
+            region = var.region
+          }
+        "ec2.tf": |
+          locals {
+            ec2_capacity_providers          = {}
+            external_ec2_capacity_providers = {}
+          }
+
+          resource "aws_ecs_capacity_provider" "ec2" {
+            for_each = local.ec2_capacity_providers
+
+            name = each.key
+
+            auto_scaling_group_provider {
+              auto_scaling_group_arn         = ""
+              managed_termination_protection = "DISABLED"
+            }
+          }
+
+          resource "aws_ecs_capacity_provider" "external_ec2" {
+            for_each = local.external_ec2_capacity_providers
+
+            name = each.key
+
+            auto_scaling_group_provider {
+              auto_scaling_group_arn         = ""
+              managed_termination_protection = "DISABLED"
+            }
+          }
+        "iam.tf": |
+          # The emulator fixture does not need EC2 capacity provider IAM wiring.
+        "outputs.tf": |
+          output "name" {
+            description = "ECS cluster name"
+            value       = module.this.enabled ? local.cluster_name : null
+          }
+
+          output "id" {
+            description = "ECS cluster id"
+            value       = module.this.enabled ? join("", aws_ecs_cluster.default[*].id) : null
+          }
+
+          output "arn" {
+            description = "ECS cluster arn"
+            value       = module.this.enabled ? join("", aws_ecs_cluster.default[*].arn) : null
+          }
+
+          output "role_name" {
+            description = "IAM role name"
+            value       = null
+          }
+      provision:
+        workdir:
+          enabled: true
+      vars:
+        name: ecs
+        container_insights_mode: disabled
+        capacity_providers_fargate: false
+        default_capacity_strategy:
+          base:
+            provider: FARGATE
+            value: 0
+          weights: {}

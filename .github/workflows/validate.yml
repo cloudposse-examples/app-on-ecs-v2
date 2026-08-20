@@ -44,3 +44,20 @@ jobs:
       name: "Syntax check of CODEOWNERS"
       with:
         checks: "syntax,duppatterns"
+
+  atmos:
+    name: "atmos"
+    runs-on: ["ubuntu-latest"]
+    steps:
+    - name: "Checkout source code at current commit"
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+    - name: Setup Atmos
+      uses: cloudposse/github-action-setup-atmos@v3
+      with:
+        atmos-version: ${{ vars.ATMOS_VERSION }}
+    - name: Atmos Cache
+      uses: cloudposse/atmos/actions/cache@v1.226.0
+    - name: Validate affected configuration
+      run: atmos validate --affected --format rich

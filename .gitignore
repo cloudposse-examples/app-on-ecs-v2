@@ -2,9 +2,29 @@ release/*
 .idea
 *.iml
 .terraform
+**/.terraform/
+.workdir/
 **/*.tfvars.json
+**/*.tfstate
+**/*.tfstate.*
+**/terraform.tfstate.d/
 **/*.planfile
 **/backend.tf.json
 **/.terraform.lock.hcl
+**/.*.terraform.lock.hcl
+!terraform/components/ecs-task/.terraform.lock.hcl
+!terraform/components/ecs-task/.fixtures-app.terraform.lock.hcl
+**/*.junit.xml
+**/account-map.deprecated.tf
+**/*_override.tf
+**/*_override.tf.json
 
 .tools
+
+# Atmos JIT source-provisioned fixture components
+terraform/components/vpc/**
+!terraform/components/vpc/
+!terraform/components/vpc/.fixtures-vpc.terraform.lock.hcl
+terraform/components/ecs/cluster/**
+!terraform/components/ecs/cluster/
+!terraform/components/ecs/cluster/.fixtures-ecs-cluster.terraform.lock.hcl
